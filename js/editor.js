@@ -1343,16 +1343,34 @@ class AuraCanvasEditor {
 
   async loadStyleFiles() {
     try {
-      const response = await fetch('style/');
-      const htmlText = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlText, 'text/html');
-      const links = Array.from(doc.querySelectorAll('a'));
-      const jsonFiles = links
-        .map(link => link.getAttribute('href'))
-        .filter(href => href && href.endsWith('.json') && href !== 'README.md');
+      const knownStyleFiles = [
+        'minimal-card.json',
+        'animated-card.json',
+        'product-card.json',
+        'modern-product-card.json',
+        'blog-card.json',
+        'minimal-blog-card.json',
+        'testimonal.json'
+      ];
 
-      console.log('Found JSON files:', jsonFiles);
+      let jsonFiles = [];
+
+      try {
+        const response = await fetch('style/');
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const links = Array.from(doc.querySelectorAll('a'));
+        jsonFiles = links
+          .map(link => link.getAttribute('href'))
+          .filter(href => href && href.endsWith('.json') && href !== 'README.md');
+        console.log('Found JSON files from directory:', jsonFiles);
+      } catch (dirError) {
+        console.log('Could not fetch directory listing, using known style files:', dirError);
+        jsonFiles = knownStyleFiles;
+      }
+
+      console.log('Loading JSON files:', jsonFiles);
 
       for (const file of jsonFiles) {
         console.log('Loading style file:', file);
