@@ -48,7 +48,9 @@ class AuraCanvasEditor {
     document.getElementById('applyGridBtn').addEventListener('click', () => this.applyGridConfig());
     document.getElementById('saveStyleBtn').addEventListener('click', () => this.saveStyleSet());
     document.getElementById('importStyleBtn').addEventListener('click', () => this.importStyleSet());
+    document.getElementById('loadFromStyleFolderBtn').addEventListener('click', () => this.loadFromStyleFolder());
     document.getElementById('styleFileInput').addEventListener('change', (e) => this.handleStyleFileSelect(e));
+    document.getElementById('showOnlyAppliedStyles').addEventListener('change', () => this.renderStyleSets());
     document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
 
@@ -630,6 +632,76 @@ class AuraCanvasEditor {
     event.target.value = '';
   }
 
+  loadFromStyleFolder() {
+    const styleFiles = [
+      'STYLE_SET_TEMPLATE.json',
+      'animated-card.json',
+      'blog-card.json',
+      'minimal-blog-card.json',
+      'minimal-card.json',
+      'modern-product-card.json',
+      'product-card.json',
+      'testimonal.json'
+    ];
+
+    let loadedCount = 0;
+    let errorCount = 0;
+
+    styleFiles.forEach(filename => {
+      fetch(`style/${filename}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to load ${filename}`);
+          }
+          return response.json();
+        })
+        .then(styleData => {
+          const existingIndex = this.styleSets.findIndex(s => s.id === styleData.id);
+          
+          const styleSet = {
+            id: styleData.id || Date.now() + Math.random(),
+            name: styleData.name || filename.replace('.json', ''),
+            description: styleData.description || '',
+            cardBg: styleData.cardBg || styleData.cardStyle?.bg || '#ffffff',
+            cardText: styleData.cardText || styleData.cardStyle?.text || '#1f2937',
+            cardBorder: styleData.cardBorder || styleData.cardStyle?.border || '#e5e7eb',
+            cardAccent: styleData.cardAccent || styleData.fields?.price?.color || '#7c2bee',
+            cardRadius: styleData.cardRadius || styleData.cardStyle?.radius || 12,
+            cardPadding: styleData.cardPadding || styleData.cardStyle?.padding || 16,
+            cardShadow: styleData.cardShadow || styleData.cardStyle?.shadow || 'md',
+            fields: styleData.fields || {},
+            hover: styleData.hover || {},
+            template: styleData.template || null,
+            grid: styleData.grid || null,
+            dataMapping: styleData.dataMapping || null,
+            textStyles: styleData.textStyles || {},
+            animation: styleData.animation || { enabled: false },
+            isNewFormat: styleData.template && (styleData.template.html || styleData.template.css)
+          };
+
+          if (existingIndex >= 0) {
+            this.styleSets[existingIndex] = styleSet;
+          } else {
+            this.styleSets.push(styleSet);
+          }
+
+          loadedCount++;
+          console.log(`Loaded style set: ${styleSet.name}`);
+
+          if (loadedCount + errorCount === styleFiles.length) {
+            this.renderStyleSets();
+            this.renderPreview();
+            this.saveData();
+            this.showToast(`Loaded ${loadedCount} style sets from style folder`, 'success');
+          }
+        })
+        .catch(error => {
+          console.error(`Error loading ${filename}:`, error);
+          errorCount++;
+        });
+    });
+  }
+
   applyStyleSet(id) {
     const styleSet = this.styleSets.find(s => s.id === id || String(s.id) === String(id));
     if (styleSet) {
@@ -697,34 +769,77 @@ class AuraCanvasEditor {
   renderStyleSets() {
     const container = document.getElementById('styleSetList');
     const select = document.getElementById('styleSetSelect');
+    const showOnlyApplied = document.getElementById('showOnlyAppliedStyles').checked;
     
-    if (this.styleSets.length === 0) {
-      container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No saved style sets</p>';
+    let displayStyleSets = this.styleSets;
+    
+    if (showOnlyApplied) {
+      const appliedIds = this.sections.filter(s => s.styleSetId).map(s => s.styleSetId);
+      displayStyleSets = this.styleSets.filter(s => appliedIds.includes(s.id));
+    }
+    
+    if (displayStyleSets.length === 0) {
+      container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No style sets to display</p>';
       return;
     }
 
-    const previewData = this.sheetData.length > 0 ? this.sheetData[0] : null;
-    const previewImage = previewData ? 
-      Object.keys(previewData).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url')) : null;
-    let previewImageUrl = previewImage && previewData[previewImage] ? 
-      previewData[previewImage] : 'https://via.placeholder.com/300x300/7c2bee/ffffff?text=Product';
-    const originalPreviewUrl = previewImageUrl;
-    previewImageUrl = this.convertGoogleDriveUrl(previewImageUrl);
-    const previewName = previewData ? 
-      Object.keys(previewData).find(k => k.toLowerCase().includes('name')) : null;
-    const previewNameText = previewName && previewData[previewName] ? 
-      previewData[previewName] : 'Product Name';
-    const previewPrice = previewData ? 
-      Object.keys(previewData).find(k => k.toLowerCase().includes('price')) : null;
-    const previewPriceText = previewPrice && previewData[previewPrice] ? 
-      previewData[previewPrice] : '$99';
-    const previewDesc = previewData ? 
-      Object.keys(previewData).find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('description')) : null;
-    const previewDescText = previewDesc && previewData[previewDesc] ? 
-      previewData[previewDesc] : 'This is a sample product description to demonstrate the style effect';
-
-    container.innerHTML = this.styleSets.map(styleSet => {
+    container.innerHTML = displayStyleSets.map(styleSet => {
       const isAppliedToSelected = this.selectedSection && this.selectedSection.styleSetId === styleSet.id;
+      const isTestimonialStyle = styleSet.name.toLowerCase().includes('testimonial') || 
+                                styleSet.id.includes('testimonial') ||
+                                (styleSet.fields && styleSet.fields.author);
+      
+      let previewHtml = '';
+      
+      if (isTestimonialStyle) {
+        previewHtml = `
+          <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
+            <div style="font-size: 14px; font-weight: 600; color: ${styleSet.textStyles?.title?.color || '#6b7280'}; margin-bottom: 8px; text-transform: uppercase;">
+              ◆ Client Stories
+            </div>
+            <div style="font-size: 16px; font-weight: 400; font-style: italic; margin-bottom: 16px; line-height: 1.5;">
+              "ARKAL transformed our space with clear vision and thoughtful design. Every detail felt intentional."
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+              <div>
+                <div style="font-size: 15px; font-weight: 500; color: ${styleSet.textStyles?.author?.color || '#1f2937'};">Lydia Chen</div>
+                <div style="font-size: 13px; color: ${styleSet.textStyles?.role?.color || '#6b7280'};">Director, Arcadia Builders</div>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        const previewData = this.sheetData.length > 0 ? this.sheetData[0] : null;
+        const previewImage = previewData ? 
+          Object.keys(previewData).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url')) : null;
+        let previewImageUrl = previewImage && previewData[previewImage] ? 
+          previewData[previewImage] : 'https://via.placeholder.com/300x300/7c2bee/ffffff?text=Product';
+        const originalPreviewUrl = previewImageUrl;
+        previewImageUrl = this.convertGoogleDriveUrl(previewImageUrl);
+        const previewName = previewData ? 
+          Object.keys(previewData).find(k => k.toLowerCase().includes('name')) : null;
+        const previewNameText = previewName && previewData[previewName] ? 
+          previewData[previewName] : 'Product Name';
+        const previewPrice = previewData ? 
+          Object.keys(previewData).find(k => k.toLowerCase().includes('price')) : null;
+        const previewPriceText = previewPrice && previewData[previewPrice] ? 
+          previewData[previewPrice] : '$99';
+        const previewDesc = previewData ? 
+          Object.keys(previewData).find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('description')) : null;
+        const previewDescText = previewDesc && previewData[previewDesc] ? 
+          previewData[previewDesc] : 'This is a sample product description to demonstrate the style effect';
+        
+        previewHtml = `
+          <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
+            <img src="${previewImageUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';console.error('Preview image failed to load:', '${originalPreviewUrl}');" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
+            <div class="mini-card-title" style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${previewNameText}</div>
+            <div class="mini-card-accent" style="font-size: 18px; font-weight: 700; color: ${styleSet.cardAccent}; margin-bottom: 8px;">${previewPriceText}</div>
+            <div class="mini-card-body" style="font-size: 13px; line-height: 1.5; color: #6b7280; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${previewDescText}</div>
+          </div>
+        `;
+      }
+      
       return `
       <div class="style-set-item ${this.currentStyle && this.currentStyle.id === styleSet.id ? 'selected' : ''}">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
@@ -733,17 +848,12 @@ class AuraCanvasEditor {
             <input type="checkbox" ${isAppliedToSelected ? 'checked' : ''} 
                    onchange="editor.toggleStyleOnSection('${styleSet.id}', this.checked)"
                    style="width: 16px; height: 16px; cursor: pointer;">
-            Apply to Section
+            Apply
           </label>
         </div>
         ${styleSet.description ? `<div class="style-set-description">${styleSet.description}</div>` : ''}
         <div class="style-set-preview">
-          <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
-            <img src="${previewImageUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';console.error('Preview image failed to load:', '${originalPreviewUrl}');" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
-            <div class="mini-card-title" style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${previewNameText}</div>
-            <div class="mini-card-accent" style="font-size: 18px; font-weight: 700; color: ${styleSet.cardAccent}; margin-bottom: 8px;">${previewPriceText}</div>
-            <div class="mini-card-body" style="font-size: 13px; line-height: 1.5; color: #6b7280; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${previewDescText}</div>
-          </div>
+          ${previewHtml}
         </div>
         <div style="margin-top: 8px; display: flex; gap: 8px;">
           <button class="btn btn-primary" onclick="editor.applyStyleSet('${styleSet.id}')">Apply</button>

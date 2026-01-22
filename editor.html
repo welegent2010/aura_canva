@@ -173,11 +173,18 @@
             </button>
             <div style="display: flex; gap: 8px; margin-top: 12px;">
               <button class="btn btn-secondary" id="importStyleBtn" style="flex: 1;">
-                Import Style Set
+                Import File
+              </button>
+              <button class="btn btn-secondary" id="loadFromStyleFolderBtn" style="flex: 1;">
+                Load from Style Folder
               </button>
               <input type="file" id="styleFileInput" accept=".json" style="display: none;">
             </div>
-            <div class="style-set-list" id="styleSetList" style="margin-top: 20px;"></div>
+            <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="showOnlyAppliedStyles" style="width: 16px; height: 16px; cursor: pointer;">
+              <label for="showOnlyAppliedStyles" style="font-size: 13px; cursor: pointer; color: #6b7280;">Show only applied styles</label>
+            </div>
+            <div class="style-set-list" id="styleSetList" style="margin-top: 12px;"></div>
           </div>
         </div>
       </aside>
