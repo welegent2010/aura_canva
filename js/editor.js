@@ -47,6 +47,8 @@ class AuraCanvasEditor {
     document.getElementById('loadDataBtn').addEventListener('click', () => this.loadSheetData());
     document.getElementById('applyGridBtn').addEventListener('click', () => this.applyGridConfig());
     document.getElementById('saveStyleBtn').addEventListener('click', () => this.saveStyleSet());
+    document.getElementById('importStyleBtn').addEventListener('click', () => this.importStyleSet());
+    document.getElementById('styleFileInput').addEventListener('change', (e) => this.handleStyleFileSelect(e));
     document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
 
@@ -408,7 +410,12 @@ class AuraCanvasEditor {
           </div>
         </div>
         <div class="section-item-preview">
-          ${section.className || 'No Class'} ${section.gridEnabled ? '| Grid Enabled' : ''}
+          ${section.className || 'No Class'}
+          ${section.gridEnabled ? `
+            <span class="grid-badge" style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">
+              Grid: ${section.gridColumns || 3} cols
+            </span>
+          ` : ''}
           ${section.styleApplied ? `<span class="style-badge" style="background: #7c2bee; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">${styleSet ? styleSet.name : 'Style Applied'}</span>` : ''}
         </div>
       </div>
@@ -530,10 +537,10 @@ class AuraCanvasEditor {
 
   applyGridConfig() {
     this.gridConfig = {
-      columns: parseInt(document.getElementById('gridColumns').value),
-      gap: parseInt(document.getElementById('gridGap').value),
-      minWidth: parseInt(document.getElementById('gridMinWidth').value),
-      maxWidth: parseInt(document.getElementById('gridMaxWidth').value)
+      columns: parseInt(document.getElementById('gridColumnsNum').value),
+      gap: parseInt(document.getElementById('gridGapNum').value),
+      minWidth: parseInt(document.getElementById('gridMinWidthNum').value),
+      maxWidth: parseInt(document.getElementById('gridMaxWidthNum').value)
     };
 
     if (this.selectedSection) {
@@ -573,8 +580,58 @@ class AuraCanvasEditor {
     this.showToast('Style set saved', 'success');
   }
 
+  importStyleSet() {
+    document.getElementById('styleFileInput').click();
+  }
+
+  handleStyleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const styleData = JSON.parse(e.target.result);
+
+        const styleSet = {
+          id: styleData.id || Date.now() + Math.random(),
+          name: styleData.name || file.name.replace('.json', ''),
+          description: styleData.description || '',
+          cardBg: styleData.cardBg || styleData.cardStyle?.bg || '#ffffff',
+          cardText: styleData.cardText || styleData.cardStyle?.text || '#1f2937',
+          cardBorder: styleData.cardBorder || styleData.cardStyle?.border || '#e5e7eb',
+          cardAccent: styleData.cardAccent || styleData.fields?.price?.color || '#7c2bee',
+          cardRadius: styleData.cardRadius || styleData.cardStyle?.radius || 12,
+          cardPadding: styleData.cardPadding || styleData.cardStyle?.padding || 16,
+          cardShadow: styleData.cardShadow || styleData.cardStyle?.shadow || 'md',
+          fields: styleData.fields || {},
+          hover: styleData.hover || {},
+          template: styleData.template || null,
+          grid: styleData.grid || null,
+          dataMapping: styleData.dataMapping || null,
+          textStyles: styleData.textStyles || {},
+          animation: styleData.animation || { enabled: false },
+          isNewFormat: styleData.template && (styleData.template.html || styleData.template.css)
+        };
+
+        this.styleSets.push(styleSet);
+        this.currentStyle = styleSet;
+        this.renderStyleSets();
+        this.renderPreview();
+        this.saveData();
+        this.showToast('Style set imported: ' + styleSet.name, 'success');
+      } catch (error) {
+        console.error('Failed to import style set:', error);
+        this.showToast('Failed to import style set. Please check the file format.', 'error');
+      }
+    };
+    reader.readAsText(file);
+
+    event.target.value = '';
+  }
+
   applyStyleSet(id) {
-    const styleSet = this.styleSets.find(s => s.id === id);
+    const styleSet = this.styleSets.find(s => s.id === id || String(s.id) === String(id));
     if (styleSet) {
       this.currentStyle = styleSet;
 
@@ -674,7 +731,7 @@ class AuraCanvasEditor {
           <div class="style-set-name">${styleSet.name}</div>
           <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
             <input type="checkbox" ${isAppliedToSelected ? 'checked' : ''} 
-                   onchange="editor.toggleStyleOnSection(${styleSet.id}, this.checked)"
+                   onchange="editor.toggleStyleOnSection('${styleSet.id}', this.checked)"
                    style="width: 16px; height: 16px; cursor: pointer;">
             Apply to Section
           </label>
@@ -689,8 +746,8 @@ class AuraCanvasEditor {
           </div>
         </div>
         <div style="margin-top: 8px; display: flex; gap: 8px;">
-          <button class="btn btn-primary" onclick="editor.applyStyleSet(${styleSet.id})">Apply</button>
-          <button class="btn btn-secondary" onclick="editor.deleteStyleSet(${styleSet.id})">Delete</button>
+          <button class="btn btn-primary" onclick="editor.applyStyleSet('${styleSet.id}')">Apply</button>
+          <button class="btn btn-secondary" onclick="editor.deleteStyleSet('${styleSet.id}')">Delete</button>
         </div>
       </div>
     `;
@@ -931,12 +988,22 @@ class AuraCanvasEditor {
               html += `<div class="card">${this.renderCard(item)}</div>`;
             });
           } else {
-            html += `<div class="card">
-              <img src="https://via.placeholder.com/300x300/7c2bee/ffffff?text=Sample" alt="Sample Image" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
-              <h3>Sample Product</h3>
-              <div class="price">$99</div>
-              <p>This is a sample product description. Please load Google Sheets data first</p>
-            </div>`;
+            const gridCols = section.gridColumns || this.gridConfig.columns || 4;
+            const totalPlaceholders = gridCols * 3;
+            for (let i = 0; i < totalPlaceholders; i++) {
+              html += `<div class="card placeholder-card" style="
+                background: #f9fafb;
+                border: 2px dashed #d1d5db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 200px;
+                color: #9ca3af;
+                font-size: 14px;
+              ">
+                Card ${i + 1}
+              </div>`;
+            }
           }
           html += `</div>`;
         } else {
@@ -1280,12 +1347,22 @@ class AuraCanvasEditor {
               html += `<div class="card">${this.renderCard(item)}</div>`;
             });
           } else {
-            html += `<div class="card">
-              <img src="https://via.placeholder.com/300x300/7c2bee/ffffff?text=Sample" alt="Sample Image" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
-              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">Sample Product</h3>
-              <div style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: var(--primary, #7c2bee);">$99</div>
-              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #6b7280;">This is a sample product description. Please load Google Sheets data first</p>
-            </div>`;
+            const gridCols = section.gridColumns || this.gridConfig.columns || 4;
+            const totalPlaceholders = gridCols * 3;
+            for (let i = 0; i < totalPlaceholders; i++) {
+              html += `<div class="card placeholder-card" style="
+                background: #f9fafb;
+                border: 2px dashed #d1d5db;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 200px;
+                color: #9ca3af;
+                font-size: 14px;
+              ">
+                Card ${i + 1}
+              </div>`;
+            }
           }
           html += `</div>`;
         } else {
@@ -1341,82 +1418,49 @@ class AuraCanvasEditor {
     }
   }
 
-  async loadStyleFiles() {
+  loadStyleFiles() {
     try {
-      const knownStyleFiles = [
-        'minimal-card.json',
-        'animated-card.json',
-        'product-card.json',
-        'modern-product-card.json',
-        'blog-card.json',
-        'minimal-blog-card.json',
-        'testimonal.json'
-      ];
+      if (typeof STYLE_SETS !== 'undefined' && STYLE_SETS.length > 0) {
+        console.log('Loading style sets from STYLE_SETS constant:', STYLE_SETS.length);
 
-      let jsonFiles = [];
+        for (const styleData of STYLE_SETS) {
+          const isNewFormat = styleData.template && (styleData.template.html || styleData.template.css);
 
-      try {
-        const response = await fetch('style/');
-        const htmlText = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        const links = Array.from(doc.querySelectorAll('a'));
-        jsonFiles = links
-          .map(link => link.getAttribute('href'))
-          .filter(href => href && href.endsWith('.json') && href !== 'README.md');
-        console.log('Found JSON files from directory:', jsonFiles);
-      } catch (dirError) {
-        console.log('Could not fetch directory listing, using known style files:', dirError);
-        jsonFiles = knownStyleFiles;
-      }
+          const styleSet = {
+            id: styleData.id || Date.now() + Math.random(),
+            name: styleData.name || 'Untitled Style',
+            description: styleData.description || '',
+            cardBg: styleData.cardBg || styleData.cardStyle?.bg || '#ffffff',
+            cardText: styleData.cardText || styleData.cardStyle?.text || '#1f2937',
+            cardBorder: styleData.cardBorder || styleData.cardStyle?.border || '#e5e7eb',
+            cardAccent: styleData.cardAccent || styleData.fields?.price?.color || '#7c2bee',
+            cardRadius: styleData.cardRadius || styleData.cardStyle?.radius || 12,
+            cardPadding: styleData.cardPadding || styleData.cardStyle?.padding || 16,
+            cardShadow: styleData.cardShadow || styleData.cardStyle?.shadow || 'md',
+            fields: styleData.fields || {},
+            hover: styleData.hover || {},
+            template: styleData.template || null,
+            grid: styleData.grid || null,
+            dataMapping: styleData.dataMapping || null,
+            textStyles: styleData.textStyles || {},
+            animation: styleData.animation || { enabled: false },
+            isNewFormat: isNewFormat
+          };
 
-      console.log('Loading JSON files:', jsonFiles);
-
-      for (const file of jsonFiles) {
-        console.log('Loading style file:', file);
-        try {
-          const styleResponse = await fetch(`style/${file}`);
-          if (styleResponse.ok) {
-            const styleData = await styleResponse.json();
-
-            const isNewFormat = styleData.template && (styleData.template.html || styleData.template.css);
-
-            const styleSet = {
-              id: styleData.id || Date.now() + Math.random(),
-              name: styleData.name || 'Untitled Style',
-              description: styleData.description || '',
-              cardBg: styleData.cardBg || styleData.cardStyle?.bg || '#ffffff',
-              cardText: styleData.cardText || styleData.cardStyle?.text || '#1f2937',
-              cardBorder: styleData.cardBorder || styleData.cardStyle?.border || '#e5e7eb',
-              cardAccent: styleData.cardAccent || styleData.fields?.price?.color || '#7c2bee',
-              cardRadius: styleData.cardRadius || styleData.cardStyle?.radius || 12,
-              cardPadding: styleData.cardPadding || styleData.cardStyle?.padding || 16,
-              cardShadow: styleData.cardShadow || styleData.cardStyle?.shadow || 'md',
-              fields: styleData.fields || {},
-              hover: styleData.hover || {},
-              template: styleData.template || null,
-              grid: styleData.grid || null,
-              dataMapping: styleData.dataMapping || null,
-              textStyles: styleData.textStyles || {},
-              animation: styleData.animation || { enabled: false },
-              isNewFormat: isNewFormat
-            };
-
-            this.styleSets.push(styleSet);
-            console.log(`Loaded style set: ${styleSet.name} (${file})`);
-          }
-        } catch (error) {
-          console.log(`Failed to load style file ${file}:`, error);
+          this.styleSets.push(styleSet);
+          console.log(`Loaded style set: ${styleSet.name}`);
         }
-      }
 
-      if (this.styleSets.length > 0 && !this.currentStyle) {
-        this.currentStyle = this.styleSets[0];
-      }
+        if (this.styleSets.length > 0 && !this.currentStyle) {
+          this.currentStyle = this.styleSets[0];
+        }
 
-      console.log(`Total style sets loaded: ${this.styleSets.length}`);
-      console.log('Style sets:', this.styleSets);
-      this.renderStyleSets();
+        console.log(`Total style sets loaded: ${this.styleSets.length}`);
+        console.log('Style sets:', this.styleSets);
+        this.renderStyleSets();
+      } else {
+        console.error('STYLE_SETS is not defined or empty');
+      }
     } catch (error) {
       console.log('Failed to load style files:', error);
       console.error('Error details:', error);

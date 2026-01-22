@@ -6,6 +6,7 @@
   <title>Aura Canvas - Visual Editor</title>
   <link rel="stylesheet" href="css/editor.css">
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="js/style-sets.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -170,6 +171,12 @@
             <button class="btn btn-primary btn-full" id="saveStyleBtn" style="margin-top: 16px;">
               Save Style Set
             </button>
+            <div style="display: flex; gap: 8px; margin-top: 12px;">
+              <button class="btn btn-secondary" id="importStyleBtn" style="flex: 1;">
+                Import Style Set
+              </button>
+              <input type="file" id="styleFileInput" accept=".json" style="display: none;">
+            </div>
             <div class="style-set-list" id="styleSetList" style="margin-top: 20px;"></div>
           </div>
         </div>
