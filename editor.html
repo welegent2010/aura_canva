@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura Canvas - Visual Editor</title>
+  <link rel="stylesheet" href="css/editor.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <h1>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="6" fill="#7c2bee"/>
+          <path d="M8 10h16v2H8zM8 15h16v2H8zM8 20h10v2H8z" fill="white"/>
+        </svg>
+        Aura Canvas
+      </h1>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="newProjectBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0a8 8 0 100 16A8 8 0 008 0zm1 9H7V7h2v2z"/>
+          </svg>
+          New Project
+        </button>
+        <button class="btn btn-secondary" id="importHtmlBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M3 5h10v2H3zm0 4h10v2H3zm0 4h6v2H3z"/>
+          </svg>
+          Import HTML
+        </button>
+        <button class="btn btn-primary" id="exportBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0L3 5h2v7h6V5h2L8 0zM0 14h16v2H0z"/>
+          </svg>
+          Export HTML
+        </button>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <aside class="sidebar">
+        <div class="sidebar-tabs">
+          <button class="tab active" data-tab="sections">Sections</button>
+          <button class="tab" data-tab="data">Data Source</button>
+          <button class="tab" data-tab="grid">Grid Config</button>
+          <button class="tab" data-tab="styles">Style Sets</button>
+        </div>
+
+        <div class="sidebar-content">
+          <div class="panel active" id="sections-panel">
+            <h2 class="panel-title">Page Sections</h2>
+            <div class="section-list" id="sectionList">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <line x1="12" y1="8" x2="12" y2="16"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                <h3>No Sections</h3>
+                <p>Import HTML or add new sections</p>
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-full" id="addSectionBtn" style="margin-top: 16px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0L3 5h2v7h6V5h2L8 0z"/>
+              </svg>
+              Add Section
+            </button>
+          </div>
+
+          <div class="panel" id="data-panel">
+            <h2 class="panel-title">Data Source Connection</h2>
+            <div class="form-group">
+              <label class="form-label">Google Sheets URL</label>
+              <input type="text" class="form-input" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sheet Name</label>
+              <input type="text" class="form-input" id="sheetName" value="Sheet1">
+            </div>
+            <button class="btn btn-primary btn-full" id="loadDataBtn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 2L3 7h2v7h6V7h2L8 2z"/>
+              </svg>
+              Load Data
+            </button>
+            <div id="dataPreview" style="margin-top: 20px;"></div>
+          </div>
+
+          <div class="panel" id="grid-panel">
+            <h2 class="panel-title">Grid Configuration</h2>
+            <div class="grid-controls">
+              <div class="form-group">
+                <label class="form-label">Columns</label>
+                <div class="input-group">
+                  <input type="range" id="gridColumns" min="1" max="12" value="3" style="flex: 1;">
+                  <input type="number" id="gridColumnsNum" min="1" max="12" value="3" class="form-input" style="width: 80px;">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gap (px)</label>
+                <div class="input-group">
+                  <input type="range" id="gridGap" min="0" max="64" value="24" step="4" style="flex: 1;">
+                  <input type="number" id="gridGapNum" min="0" max="64" value="24" step="4" class="form-input" style="width: 80px;">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Min Width (px)</label>
+                <div class="input-group">
+                  <input type="range" id="gridMinWidth" min="150" max="500" value="300" step="50" style="flex: 1;">
+                  <input type="number" id="gridMinWidthNum" min="150" max="500" value="300" step="50" class="form-input" style="width: 80px;">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Max Width (px)</label>
+                <div class="input-group">
+                  <input type="range" id="gridMaxWidth" min="600" max="2000" value="1200" step="100" style="flex: 1;">
+                  <input type="number" id="gridMaxWidthNum" min="600" max="2000" value="1200" step="100" class="form-input" style="width: 80px;">
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-full" id="applyGridBtn" style="margin-top: 16px;">
+              Apply Grid Config
+            </button>
+          </div>
+
+          <div class="panel" id="styles-panel">
+            <h2 class="panel-title">Style Set Configuration</h2>
+            <div class="form-group">
+              <label class="form-label">Quick Select Style Set</label>
+              <select class="form-select" id="styleSetSelect">
+                <option value="">Select Style Set...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Style Set Name</label>
+              <input type="text" class="form-input" id="styleSetName" placeholder="My Style Set">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Color Configuration</label>
+              <div class="color-picker-group">
+                <div class="color-picker-item">
+                  <input type="color" id="cardBg" value="#ffffff">
+                  <label for="cardBg">Card Background</label>
+                </div>
+                <div class="color-picker-item">
+                  <input type="color" id="cardText" value="#1f2937">
+                  <label for="cardText">Text Color</label>
+                </div>
+                <div class="color-picker-item">
+                  <input type="color" id="cardBorder" value="#e5e7eb">
+                  <label for="cardBorder">Border Color</label>
+                </div>
+                <div class="color-picker-item">
+                  <input type="color" id="cardAccent" value="#7c2bee">
+                  <label for="cardAccent">Accent Color</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Border Radius (px)</label>
+              <input type="range" id="cardRadius" min="0" max="24" value="12" style="width: 100%;">
+              <span id="cardRadiusValue">12</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Padding (px)</label>
+              <input type="range" id="cardPadding" min="8" max="32" value="16" step="4" style="width: 100%;">
+              <span id="cardPaddingValue">16</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Shadow Intensity</label>
+              <select class="form-select" id="cardShadow">
+                <option value="none">No Shadow</option>
+                <option value="sm">Small Shadow</option>
+                <option value="md" selected>Medium Shadow</option>
+                <option value="lg">Large Shadow</option>
+                <option value="xl">Extra Large Shadow</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-full" id="saveStyleBtn" style="margin-top: 16px;">
+              Save Style Set
+            </button>
+            <div class="style-set-list" id="styleSetList" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <div class="workspace-toolbar">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <span style="font-weight: 600;">Preview</span>
+            <button class="btn btn-secondary" id="previewDesktopBtn">Desktop</button>
+            <button class="btn btn-secondary" id="previewTabletBtn">Tablet</button>
+            <button class="btn btn-secondary" id="previewMobileBtn">Mobile</button>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" id="refreshPreviewBtn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M13.654 2.346a8 8 0 11-11.308 11.308 8 8 0 0111.308-11.308zM12 8a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+              Refresh Preview
+            </button>
+            <button class="btn btn-success" id="exportProjectBtn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0L3 5h2v7h6V5h2L8 0zM0 14h16v2H0z"/>
+              </svg>
+              Export Project
+            </button>
+          </div>
+        </div>
+        <div class="workspace-view">
+          <div class="preview-container" id="previewContainer">
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <h3>Start Your Project</h3>
+              <p>Import HTML or add sections to start editing</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <input type="file" id="fileInput" class="file-input" accept=".html,.htm">
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="js/sheets.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/editor.js"></script>
+</body>
+</html>

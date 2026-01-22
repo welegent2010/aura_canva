@@ -1,0 +1,1429 @@
+class AuraCanvasEditor {
+  constructor() {
+    this.connector = new GoogleSheetsConnector();
+    this.gridGenerator = new GridGenerator();
+    this.sections = [];
+    this.sheetData = [];
+    this.selectedSection = null;
+    this.styleSets = [];
+    this.currentStyle = null;
+    this.gridConfig = {
+      columns: 3,
+      gap: 24,
+      minWidth: 300,
+      maxWidth: 1200
+    };
+    this.previewWidth = 'desktop';
+    this.originalHead = '';
+    this.originalHtmlClass = '';
+
+    this.init();
+  }
+
+  async init() {
+    try {
+      await this.connector.init();
+      this.bindEvents();
+      this.loadSavedData();
+      await this.loadStyleFiles();
+      this.renderStyleSets();
+      this.showToast('Welcome to Aura Canvas Editor', 'success');
+    } catch (error) {
+      console.error('Failed to initialize editor:', error);
+      this.showToast('Initialization failed: ' + error.message, 'error');
+    }
+  }
+
+  bindEvents() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+    });
+
+    document.getElementById('newProjectBtn').addEventListener('click', () => this.newProject());
+    document.getElementById('importHtmlBtn').addEventListener('click', () => this.importHtml());
+    document.getElementById('exportBtn').addEventListener('click', () => this.exportHtml());
+    document.getElementById('exportProjectBtn').addEventListener('click', () => this.exportProject());
+    document.getElementById('addSectionBtn').addEventListener('click', () => this.addSection());
+    document.getElementById('loadDataBtn').addEventListener('click', () => this.loadSheetData());
+    document.getElementById('applyGridBtn').addEventListener('click', () => this.applyGridConfig());
+    document.getElementById('saveStyleBtn').addEventListener('click', () => this.saveStyleSet());
+    document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
+    document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
+
+    document.getElementById('previewDesktopBtn').addEventListener('click', () => this.setPreviewWidth('desktop'));
+    document.getElementById('previewTabletBtn').addEventListener('click', () => this.setPreviewWidth('tablet'));
+    document.getElementById('previewMobileBtn').addEventListener('click', () => this.setPreviewWidth('mobile'));
+
+    this.bindGridControls();
+    this.bindStyleControls();
+  }
+
+  bindGridControls() {
+    const controls = ['gridColumns', 'gridGap', 'gridMinWidth', 'gridMaxWidth'];
+    controls.forEach(id => {
+      const rangeInput = document.getElementById(id);
+      const numInput = document.getElementById(id + 'Num');
+      
+      rangeInput.addEventListener('input', () => {
+        numInput.value = rangeInput.value;
+        this.updateGridConfigFromControls();
+        this.updatePreviewFromControls();
+      });
+      
+      numInput.addEventListener('input', () => {
+        rangeInput.value = numInput.value;
+        this.updateGridConfigFromControls();
+        this.updatePreviewFromControls();
+      });
+    });
+  }
+
+  bindStyleControls() {
+    document.getElementById('cardRadius').addEventListener('input', (e) => {
+      document.getElementById('cardRadiusValue').textContent = e.target.value;
+      this.updatePreviewFromControls();
+    });
+    document.getElementById('cardPadding').addEventListener('input', (e) => {
+      document.getElementById('cardPaddingValue').textContent = e.target.value;
+      this.updatePreviewFromControls();
+    });
+    
+    ['cardBg', 'cardText', 'cardBorder', 'cardAccent', 'cardShadow'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        this.updatePreviewFromControls();
+      });
+    });
+  }
+
+  updateGridConfigFromControls() {
+    this.gridConfig.columns = parseInt(document.getElementById('gridColumns').value);
+    this.gridConfig.gap = parseInt(document.getElementById('gridGap').value);
+    this.gridConfig.minWidth = parseInt(document.getElementById('gridMinWidth').value);
+    this.gridConfig.maxWidth = parseInt(document.getElementById('gridMaxWidth').value);
+    
+    if (this.selectedSection) {
+      this.selectedSection.gridColumns = this.gridConfig.columns;
+      this.selectedSection.gridGap = this.gridConfig.gap;
+      this.selectedSection.gridMinWidth = this.gridConfig.minWidth;
+      this.selectedSection.gridMaxWidth = this.gridConfig.maxWidth;
+    }
+  }
+
+  updatePreviewFromControls() {
+    if (!this.currentStyle) {
+      this.currentStyle = {
+        id: Date.now(),
+        name: 'Custom Style',
+        cardBg: document.getElementById('cardBg').value,
+        cardText: document.getElementById('cardText').value,
+        cardBorder: document.getElementById('cardBorder').value,
+        cardAccent: document.getElementById('cardAccent').value,
+        cardRadius: parseInt(document.getElementById('cardRadius').value),
+        cardPadding: parseInt(document.getElementById('cardPadding').value),
+        cardShadow: document.getElementById('cardShadow').value
+      };
+    } else {
+      this.currentStyle.cardBg = document.getElementById('cardBg').value;
+      this.currentStyle.cardText = document.getElementById('cardText').value;
+      this.currentStyle.cardBorder = document.getElementById('cardBorder').value;
+      this.currentStyle.cardAccent = document.getElementById('cardAccent').value;
+      this.currentStyle.cardRadius = parseInt(document.getElementById('cardRadius').value);
+      this.currentStyle.cardPadding = parseInt(document.getElementById('cardPadding').value);
+      this.currentStyle.cardShadow = document.getElementById('cardShadow').value;
+    }
+    this.renderPreview();
+  }
+
+  switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.panel').forEach(panel => {
+      panel.classList.toggle('active', panel.id === tabName + '-panel');
+    });
+  }
+
+  newProject() {
+    if (confirm('Are you sure you want to create a new project? All unsaved changes will be lost.')) {
+      this.sections = [];
+      this.sheetData = [];
+      this.selectedSection = null;
+      this.currentStyle = null;
+      this.renderSections();
+      this.renderPreview();
+      this.showToast('New project created', 'success');
+    }
+  }
+
+  importHtml() {
+    document.getElementById('fileInput').click();
+  }
+
+  handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const html = e.target.result;
+      this.parseHtml(html);
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  parseHtml(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    this.originalHead = doc.head.innerHTML;
+    this.originalHtmlClass = doc.documentElement.className;
+
+    const bodyChildren = Array.from(doc.body.children);
+
+    if (bodyChildren.length === 0) {
+      this.addSection('Full Page', html);
+      this.renderSections();
+      this.renderPreview();
+      this.showToast(`Successfully imported ${this.sections.length} sections`, 'success');
+      return;
+    }
+
+    this.detectContainerWidth(doc);
+
+    let sections = [];
+    let currentSection = null;
+
+    bodyChildren.forEach((child) => {
+      const tagName = child.tagName.toLowerCase();
+      const nodeType = child.nodeType;
+
+      if (nodeType === 8) {
+        const commentText = child.textContent.trim();
+        const sectionMatch = commentText.match(/(?:Section|区域|模块|Block)\s*[:：]\s*(.+)/i);
+        
+        if (sectionMatch) {
+          currentSection = {
+            name: sectionMatch[1].trim(),
+            content: '',
+            className: ''
+          };
+        }
+      } else if (nodeType === 1) {
+        let sectionName = '';
+        let content = child.outerHTML;
+        let className = child.className || '';
+
+        if (tagName === 'header') {
+          sectionName = 'Header / Navigation';
+        } else if (tagName === 'main') {
+          sectionName = 'Main Content';
+        } else if (tagName === 'footer') {
+          sectionName = 'Footer';
+        } else if (tagName === 'section') {
+          sectionName = 'Section';
+        } else if (tagName === 'div' && child.classList.contains('container')) {
+          sectionName = 'Container';
+        } else {
+          sectionName = 'Block';
+        }
+
+        if (currentSection) {
+          sectionName = currentSection.name;
+          className = currentSection.className;
+          currentSection = null;
+        }
+
+        this.addSection(sectionName, content, className);
+      }
+    });
+
+    this.renderSections();
+    this.renderPreview();
+    this.showToast(`成功导入 ${this.sections.length} 个区块`, 'success');
+  }
+
+  detectContainerWidth(doc) {
+    const commonContainers = doc.querySelectorAll('.container, .wrapper, .content, main, section, [class*="container"], [class*="wrapper"], [class*="content"]');
+    
+    let detectedWidth = null;
+    const computedWidths = [];
+    
+    commonContainers.forEach(el => {
+      const style = el.style;
+      const classList = el.classList;
+      
+      if (style.maxWidth) {
+        const widthMatch = style.maxWidth.match(/(\d+)/);
+        if (widthMatch) {
+          computedWidths.push(parseInt(widthMatch[1]));
+        }
+      }
+      
+      if (style.width) {
+        const widthMatch = style.width.match(/(\d+)/);
+        if (widthMatch) {
+          computedWidths.push(parseInt(widthMatch[1]));
+        }
+      }
+      
+      classList.forEach(cls => {
+        const widthMatch = cls.match(/container-(\d+)/);
+        if (widthMatch) {
+          computedWidths.push(parseInt(widthMatch[1]));
+        }
+      });
+    });
+    
+    const styleSheets = doc.querySelectorAll('style');
+    styleSheets.forEach(sheet => {
+      const cssText = sheet.textContent;
+      const containerMatches = cssText.match(/\.container[^{]*{[^}]*max-width:\s*(\d+)/g);
+      if (containerMatches) {
+        containerMatches.forEach(match => {
+          const widthMatch = match.match(/max-width:\s*(\d+)/);
+          if (widthMatch) {
+            computedWidths.push(parseInt(widthMatch[1]));
+          }
+        });
+      }
+    });
+    
+    if (computedWidths.length > 0) {
+      const widths = computedWidths.filter(w => w > 300 && w < 2000);
+      if (widths.length > 0) {
+        this.detectedContainerWidth = Math.max(...widths);
+      }
+    }
+    
+    if (!this.detectedContainerWidth) {
+      this.detectedContainerWidth = 1200;
+    }
+    
+    this.gridConfig.maxWidth = this.detectedContainerWidth;
+    
+    const maxWidthInput = document.getElementById('gridMaxWidth');
+    const maxWidthNumInput = document.getElementById('gridMaxWidthNum');
+    if (maxWidthInput) maxWidthInput.value = this.detectedContainerWidth;
+    if (maxWidthNumInput) maxWidthNumInput.value = this.detectedContainerWidth;
+  }
+
+  addSection(name = 'New Section', content = '', className = '') {
+    const section = {
+      id: Date.now(),
+      name,
+      content,
+      className,
+      visible: true,
+      gridEnabled: false,
+      gridColumns: 3,
+      styleApplied: false,
+      styleSetId: null
+    };
+    this.sections.push(section);
+    this.selectedSection = section;
+    this.renderSections();
+    this.renderPreview();
+    this.saveData();
+    this.showToast('Section added: ' + name, 'success');
+    return section;
+  }
+
+  deleteSection(id) {
+    if (confirm('Are you sure you want to delete this section?')) {
+      this.sections = this.sections.filter(s => s.id !== id);
+      if (this.selectedSection && this.selectedSection.id === id) {
+        this.selectedSection = null;
+      }
+      this.renderSections();
+      this.renderPreview();
+      this.saveData();
+      this.showToast('Section deleted', 'success');
+    }
+  }
+
+  selectSection(id) {
+    this.selectedSection = this.sections.find(s => s.id === id);
+    if (this.selectedSection && this.selectedSection.gridEnabled) {
+      document.getElementById('gridColumns').value = this.selectedSection.gridColumns;
+      document.getElementById('gridColumnsNum').value = this.selectedSection.gridColumns;
+      document.getElementById('gridGap').value = this.selectedSection.gridGap;
+      document.getElementById('gridGapNum').value = this.selectedSection.gridGap;
+      document.getElementById('gridMinWidth').value = this.selectedSection.gridMinWidth;
+      document.getElementById('gridMinWidthNum').value = this.selectedSection.gridMinWidth;
+      document.getElementById('gridMaxWidth').value = this.selectedSection.gridMaxWidth;
+      document.getElementById('gridMaxWidthNum').value = this.selectedSection.gridMaxWidth;
+      this.updateGridConfigFromControls();
+    }
+    this.renderSections();
+    this.showToast('Section selected: ' + this.selectedSection.name, 'success');
+  }
+
+  editSection(id) {
+    const section = this.sections.find(s => s.id === id);
+    if (!section) return;
+
+    const newName = prompt('Section Name:', section.name);
+    if (newName !== null) {
+      section.name = newName;
+      this.renderSections();
+      this.saveData();
+    }
+  }
+
+  toggleSectionVisibility(id) {
+    const section = this.sections.find(s => s.id === id);
+    if (section) {
+      section.visible = !section.visible;
+      this.renderSections();
+      this.renderPreview();
+      this.saveData();
+    }
+  }
+
+  renderSections() {
+    const container = document.getElementById('sectionList');
+    
+    if (this.sections.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <h3>No Sections</h3>
+          <p>Import HTML or add new sections</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = this.sections.map(section => {
+      const styleSet = section.styleSetId ? this.styleSets.find(s => s.id === section.styleSetId) : null;
+      return `
+      <div class="section-item ${this.selectedSection && this.selectedSection.id === section.id ? 'selected' : ''} ${!section.visible ? 'opacity-50' : ''}"
+           data-id="${section.id}">
+        <div class="section-item-header">
+          <span class="section-item-title">${section.name}</span>
+          <div class="section-item-actions">
+            <button class="btn btn-secondary" onclick="editor.toggleSectionVisibility(${section.id})">
+              ${section.visible ? 'Hide' : 'Show'}
+            </button>
+            <button class="btn btn-secondary" onclick="editor.editSection(${section.id})">Edit</button>
+            <button class="btn btn-secondary" onclick="editor.deleteSection(${section.id})">Delete</button>
+          </div>
+        </div>
+        <div class="section-item-preview">
+          ${section.className || 'No Class'} ${section.gridEnabled ? '| Grid Enabled' : ''}
+          ${section.styleApplied ? `<span class="style-badge" style="background: #7c2bee; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">${styleSet ? styleSet.name : 'Style Applied'}</span>` : ''}
+        </div>
+      </div>
+    `;
+    }).join('');
+
+    container.querySelectorAll('.section-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (!e.target.closest('button')) {
+          this.selectSection(parseInt(item.dataset.id));
+        }
+      });
+    });
+
+    this.makeSectionsSortable();
+  }
+
+  makeSectionsSortable() {
+    const container = document.getElementById('sectionList');
+    new Sortable(container, {
+      animation: 150,
+      handle: '.section-item',
+      onEnd: (evt) => {
+        const item = this.sections.splice(evt.oldIndex, 1)[0];
+        this.sections.splice(evt.newIndex, 0, item);
+        this.saveData();
+        this.renderPreview();
+      }
+    });
+  }
+
+  async loadSheetData() {
+    const url = document.getElementById('sheetUrl').value.trim();
+    const sheetName = document.getElementById('sheetName').value.trim() || 'Sheet1';
+
+    if (!url) {
+      this.showToast('Please enter Google Sheets URL', 'error');
+      return;
+    }
+
+    try {
+      const btn = document.getElementById('loadDataBtn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span class="loading">Loading...</span>';
+      btn.disabled = true;
+
+      const result = await this.connector.loadSheetData(url, sheetName, {
+        useCache: true,
+        cacheTimeout: 5 * 60 * 1000,
+        showWarnings: true
+      });
+
+      if (!result || !result.data) {
+        throw new Error('Invalid data format returned');
+      }
+
+      this.sheetData = Array.isArray(result.data) ? result.data : [];
+      
+      if (this.sheetData.length === 0) {
+        this.showToast('No data found. Please check Google Sheets URL and sheet name', 'warning');
+      } else {
+        this.showToast(`Successfully loaded ${this.sheetData.length} records`, 'success');
+        
+        console.log('=== Sheet Data Loaded ===');
+        console.log('Total rows:', this.sheetData.length);
+        if (this.sheetData.length > 0) {
+          console.log('First row:', this.sheetData[0]);
+          const imageKey = Object.keys(this.sheetData[0]).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url'));
+          if (imageKey) {
+            console.log('Image key:', imageKey);
+            console.log('Original image URL:', this.sheetData[0][imageKey]);
+            const convertedUrl = this.convertGoogleDriveUrl(this.sheetData[0][imageKey]);
+            console.log('Converted image URL:', convertedUrl);
+          }
+        }
+      }
+      
+      this.renderDataPreview();
+      this.renderPreview();
+
+    } catch (error) {
+      this.showToast('Failed to load data: ' + error.message, 'error');
+    } finally {
+      const btn = document.getElementById('loadDataBtn');
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2L3 7h2v7h6V7h2L8 2z"/></svg>Load Data';
+      btn.disabled = false;
+    }
+  }
+
+  renderDataPreview() {
+    const container = document.getElementById('dataPreview');
+    
+    if (!this.sheetData || this.sheetData.length === 0) {
+      container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No data</p>';
+      return;
+    }
+
+    const headers = Object.keys(this.sheetData[0]);
+    const rows = this.sheetData.slice(0, 10);
+
+    container.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            ${headers.map(h => `<th>${h}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => `
+            <tr>
+              ${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ${this.sheetData.length > 10 ? `<p style="margin-top: 12px; color: #6b7280; font-size: 12px;">Showing first 10 of ${this.sheetData.length} records</p>` : ''}
+    `;
+  }
+
+  applyGridConfig() {
+    this.gridConfig = {
+      columns: parseInt(document.getElementById('gridColumns').value),
+      gap: parseInt(document.getElementById('gridGap').value),
+      minWidth: parseInt(document.getElementById('gridMinWidth').value),
+      maxWidth: parseInt(document.getElementById('gridMaxWidth').value)
+    };
+
+    if (this.selectedSection) {
+      this.selectedSection.gridEnabled = true;
+      this.selectedSection.gridColumns = this.gridConfig.columns;
+    }
+
+    this.renderSections();
+    this.renderPreview();
+    this.showToast('Grid configuration applied', 'success');
+  }
+
+  saveStyleSet() {
+    const name = document.getElementById('styleSetName').value.trim();
+    if (!name) {
+      this.showToast('Please enter style set name', 'error');
+      return;
+    }
+
+    const styleSet = {
+      id: Date.now(),
+      name,
+      cardBg: document.getElementById('cardBg').value,
+      cardText: document.getElementById('cardText').value,
+      cardBorder: document.getElementById('cardBorder').value,
+      cardAccent: document.getElementById('cardAccent').value,
+      cardRadius: parseInt(document.getElementById('cardRadius').value),
+      cardPadding: parseInt(document.getElementById('cardPadding').value),
+      cardShadow: document.getElementById('cardShadow').value
+    };
+
+    this.styleSets.push(styleSet);
+    this.currentStyle = styleSet;
+    this.renderStyleSets();
+    this.renderPreview();
+    this.saveData();
+    this.showToast('Style set saved', 'success');
+  }
+
+  applyStyleSet(id) {
+    const styleSet = this.styleSets.find(s => s.id === id);
+    if (styleSet) {
+      this.currentStyle = styleSet;
+
+      if (styleSet.isNewFormat && styleSet.grid) {
+        this.gridConfig = {
+          columns: styleSet.grid.columns || 4,
+          gap: styleSet.grid.gap || 24,
+          minWidth: styleSet.grid.minWidth || 280,
+          maxWidth: styleSet.grid.maxWidth || 1440
+        };
+      }
+
+      if (this.selectedSection) {
+        this.selectedSection.gridEnabled = true;
+        this.selectedSection.gridColumns = this.gridConfig.columns;
+        this.selectedSection.gridGap = this.gridConfig.gap;
+        this.selectedSection.gridMinWidth = this.gridConfig.minWidth;
+        this.selectedSection.gridMaxWidth = this.gridConfig.maxWidth;
+        this.selectedSection.styleApplied = true;
+        this.selectedSection.styleSetId = id;
+      }
+
+      this.renderStyleSets();
+      this.renderSections();
+      this.renderPreview();
+      this.showToast('Style set applied: ' + styleSet.name, 'success');
+    }
+  }
+
+  toggleStyleOnSection(id, apply) {
+    if (!this.selectedSection) {
+      this.showToast('Please select a section first', 'error');
+      return;
+    }
+    
+    if (apply) {
+      this.applyStyleSet(id);
+    } else {
+      this.selectedSection.styleApplied = false;
+      this.selectedSection.styleSetId = null;
+      this.selectedSection.gridEnabled = false;
+      this.renderStyleSets();
+      this.renderSections();
+      this.renderPreview();
+      this.saveData();
+      this.showToast('Style set removed', 'success');
+    }
+  }
+
+  deleteStyleSet(id) {
+    if (confirm('Are you sure you want to delete this style set?')) {
+      this.styleSets = this.styleSets.filter(s => s.id !== id);
+      if (this.currentStyle && this.currentStyle.id === id) {
+        this.currentStyle = null;
+      }
+      this.renderStyleSets();
+      this.renderPreview();
+      this.saveData();
+      this.showToast('Style set deleted', 'success');
+    }
+  }
+
+  renderStyleSets() {
+    const container = document.getElementById('styleSetList');
+    const select = document.getElementById('styleSetSelect');
+    
+    if (this.styleSets.length === 0) {
+      container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No saved style sets</p>';
+      return;
+    }
+
+    const previewData = this.sheetData.length > 0 ? this.sheetData[0] : null;
+    const previewImage = previewData ? 
+      Object.keys(previewData).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url')) : null;
+    let previewImageUrl = previewImage && previewData[previewImage] ? 
+      previewData[previewImage] : 'https://via.placeholder.com/300x300/7c2bee/ffffff?text=Product';
+    const originalPreviewUrl = previewImageUrl;
+    previewImageUrl = this.convertGoogleDriveUrl(previewImageUrl);
+    const previewName = previewData ? 
+      Object.keys(previewData).find(k => k.toLowerCase().includes('name')) : null;
+    const previewNameText = previewName && previewData[previewName] ? 
+      previewData[previewName] : 'Product Name';
+    const previewPrice = previewData ? 
+      Object.keys(previewData).find(k => k.toLowerCase().includes('price')) : null;
+    const previewPriceText = previewPrice && previewData[previewPrice] ? 
+      previewData[previewPrice] : '$99';
+    const previewDesc = previewData ? 
+      Object.keys(previewData).find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('description')) : null;
+    const previewDescText = previewDesc && previewData[previewDesc] ? 
+      previewData[previewDesc] : 'This is a sample product description to demonstrate the style effect';
+
+    container.innerHTML = this.styleSets.map(styleSet => {
+      const isAppliedToSelected = this.selectedSection && this.selectedSection.styleSetId === styleSet.id;
+      return `
+      <div class="style-set-item ${this.currentStyle && this.currentStyle.id === styleSet.id ? 'selected' : ''}">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+          <div class="style-set-name">${styleSet.name}</div>
+          <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
+            <input type="checkbox" ${isAppliedToSelected ? 'checked' : ''} 
+                   onchange="editor.toggleStyleOnSection(${styleSet.id}, this.checked)"
+                   style="width: 16px; height: 16px; cursor: pointer;">
+            Apply to Section
+          </label>
+        </div>
+        ${styleSet.description ? `<div class="style-set-description">${styleSet.description}</div>` : ''}
+        <div class="style-set-preview">
+          <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
+            <img src="${previewImageUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';console.error('Preview image failed to load:', '${originalPreviewUrl}');" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
+            <div class="mini-card-title" style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${previewNameText}</div>
+            <div class="mini-card-accent" style="font-size: 18px; font-weight: 700; color: ${styleSet.cardAccent}; margin-bottom: 8px;">${previewPriceText}</div>
+            <div class="mini-card-body" style="font-size: 13px; line-height: 1.5; color: #6b7280; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${previewDescText}</div>
+          </div>
+        </div>
+        <div style="margin-top: 8px; display: flex; gap: 8px;">
+          <button class="btn btn-primary" onclick="editor.applyStyleSet(${styleSet.id})">Apply</button>
+          <button class="btn btn-secondary" onclick="editor.deleteStyleSet(${styleSet.id})">Delete</button>
+        </div>
+      </div>
+    `;
+    }).join('');
+
+    if (select) {
+      select.innerHTML = `
+        <option value="">Select style set...</option>
+        ${this.styleSets.map(styleSet => `
+          <option value="${styleSet.id}" ${this.currentStyle && this.currentStyle.id === styleSet.id ? 'selected' : ''}>
+            ${styleSet.name}
+          </option>
+        `).join('')}
+      `;
+      select.addEventListener('change', (e) => {
+        if (e.target.value) {
+          this.applyStyleSet(parseFloat(e.target.value));
+        }
+      });
+    }
+  }
+
+  setPreviewWidth(width) {
+    this.previewWidth = width;
+    this.updatePreviewContainer();
+    this.renderPreview();
+  }
+
+  updatePreviewContainer() {
+    const container = document.getElementById('previewContainer');
+    const widths = {
+      desktop: '100%',
+      tablet: '768px',
+      mobile: '375px'
+    };
+    container.style.maxWidth = widths[this.previewWidth];
+    container.style.margin = '0 auto';
+  }
+
+  renderPreview() {
+    const container = document.getElementById('previewContainer');
+    
+    if (this.sections.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <h3>Start Your Project</h3>
+          <p>Import HTML or add sections to begin editing</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `<!DOCTYPE html><html${this.originalHtmlClass ? ' class="' + this.originalHtmlClass + '"' : ''}><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">`;
+    
+    if (this.originalHead) {
+      html += this.originalHead;
+    }
+    
+    if (this.currentStyle || this.selectedSection?.gridEnabled) {
+      html += '<style>';
+      
+      if (this.currentStyle || this.selectedSection?.gridEnabled) {
+        html += `
+          .grid-container {
+            max-width: ${this.gridConfig.maxWidth}px;
+            margin: 0 auto;
+            width: 100%;
+          }
+        `;
+      }
+      
+      if (this.currentStyle) {
+        const animEnabled = this.currentStyle.animation?.enabled ?? false;
+        const animHover = this.currentStyle.animation?.hover || {};
+        const animEntry = this.currentStyle.animation?.entry || {};
+
+        if (this.currentStyle.isNewFormat && this.currentStyle.template?.css) {
+          html += `
+            .card {
+              --card-bg: ${this.currentStyle.cardBg};
+              --card-text: ${this.currentStyle.cardText};
+              --card-border: ${this.currentStyle.cardBorder};
+              --card-radius: ${this.currentStyle.cardRadius}px;
+              --card-padding: ${this.currentStyle.cardPadding}px;
+            }
+            ${this.generateTextStylesCSS(this.currentStyle.textStyles || {})}
+            ${this.generateAnimationCSS(animEnabled, animHover, animEntry)}
+            ${this.currentStyle.template.css}
+          `;
+        } else {
+          html += `
+            .card {
+              background: ${this.currentStyle.cardBg};
+              color: ${this.currentStyle.cardText};
+              border: 1px solid ${this.currentStyle.cardBorder};
+              border-radius: ${this.currentStyle.cardRadius}px;
+              padding: ${this.currentStyle.cardPadding}px;
+              box-shadow: ${this.getShadowValue(this.currentStyle.cardShadow)};
+              display: flex;
+              flex-direction: column;
+              ${animEnabled ? 'transition: transform 0.2s ease, box-shadow 0.2s ease;' : ''}
+            }
+            ${animEnabled && animHover.cardLift ? `
+            .card:hover {
+              transform: translateY(-${animHover.liftDistance || 4}px);
+              ${animHover.cardShadow ? `box-shadow: 0 12px 24px rgba(0,0,0,${animHover.shadowIntensity || 0.15});` : ''}
+            }
+            ` : ''}
+            .card img {
+              ${animEnabled && animHover.imageZoom ? 'transition: transform 0.2s ease;' : ''}
+            }
+            ${animEnabled && animHover.imageZoom ? `
+            .card:hover img {
+              transform: scale(${animHover.imageScale || 1.05});
+            }
+            ` : ''}
+            ${this.generateTextStylesCSS(this.currentStyle.textStyles || {})}
+            ${this.generateAnimationCSS(animEnabled, animHover, animEntry)}
+          `;
+        }
+
+        html += `
+          @media (max-width: 599px) {
+            .grid-container {
+              grid-template-columns: repeat(2, 1fr) !important;
+              gap: 12px !important;
+            }
+          }
+          @media (min-width: 600px) and (max-width: 1023px) {
+            .grid-container {
+              grid-template-columns: repeat(3, 1fr) !important;
+              gap: 16px !important;
+            }
+          }
+          @media (min-width: 1024px) {
+            .grid-container {
+              grid-template-columns: repeat(${this.gridConfig.columns}, 1fr) !important;
+              gap: ${this.gridConfig.gap}px !important;
+            }
+          }
+
+          .card h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+          }
+
+          .card .subtitle {
+            margin: 0 0 4px 0;
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .card .price {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary, #7c2bee);
+          }
+
+          .card p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #6b7280;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+          }
+
+          .card .badge {
+            background: ${this.currentStyle?.cardAccent || '#7c2bee'};
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+          }
+        `;
+      }
+
+      const hasGridSections = this.sections.some(s => s.visible && s.gridEnabled);
+      if (hasGridSections) {
+        const gridCSS = this.gridGenerator.generateFullGridCSS({
+          columns: this.gridConfig.columns,
+          gap: this.gridConfig.gap,
+          minWidth: this.gridConfig.minWidth,
+          maxWidth: this.gridConfig.maxWidth,
+          containerClass: '.grid-container'
+        });
+        html += gridCSS;
+      }
+
+      html += '</style>';
+    }
+    
+    html += '<script>';
+    html += `
+      console.log('=== Preview Debug Info ===');
+      console.log('Grid Config:', ${JSON.stringify(this.gridConfig)});
+      console.log('Current Style:', ${JSON.stringify(this.currentStyle)});
+      console.log('Sheet Data Count:', ${this.sheetData.length});
+      console.log('Sections Count:', ${this.sections.length});
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded in preview iframe');
+        const images = document.querySelectorAll('img');
+        console.log('Images found:', images.length);
+        images.forEach((img, index) => {
+          console.log('Image', index, '- src:', img.src);
+          img.addEventListener('load', function() {
+            console.log('Image', index, 'loaded successfully:', this.src);
+          });
+          img.addEventListener('error', function() {
+            console.error('Image', index, 'failed to load:', this.src);
+          });
+        });
+      });
+    `;
+    html += '</script>';
+
+    html += '</head><body>';
+
+    this.sections.forEach(section => {
+      if (section.visible) {
+        if (section.gridEnabled) {
+          html += `<div class="grid-container">`;
+          if (this.sheetData.length > 0) {
+            this.sheetData.forEach(item => {
+              html += `<div class="card">${this.renderCard(item)}</div>`;
+            });
+          } else {
+            html += `<div class="card">
+              <img src="https://via.placeholder.com/300x300/7c2bee/ffffff?text=Sample" alt="Sample Image" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
+              <h3>Sample Product</h3>
+              <div class="price">$99</div>
+              <p>This is a sample product description. Please load Google Sheets data first</p>
+            </div>`;
+          }
+          html += `</div>`;
+        } else {
+          html += `<div class="section-framework" style="
+            position: relative;
+            border: 2px dashed #7c2bee;
+            padding: 8px;
+            margin: 8px 0;
+            background: rgba(124, 43, 238, 0.02);
+            border-radius: 4px;
+          ">`;
+          html += `<div class="section-label" style="
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #7c2bee;
+            color: white;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 2px;
+            font-weight: 500;
+          ">${section.name}</div>`;
+          html += section.content;
+          html += `</div>`;
+        }
+      }
+    });
+
+    html += '</body></html>';
+
+    container.innerHTML = `<iframe class="preview-iframe" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads" referrerpolicy="no-referrer"></iframe>`;
+    const iframe = container.querySelector('iframe');
+    iframe.srcdoc = html;
+  }
+
+  convertGoogleDriveUrl(url) {
+    if (!url) return '';
+    
+    const trimmedUrl = url.trim();
+    
+    if (trimmedUrl.includes('drive.google.com/file/d/')) {
+      const idMatch = trimmedUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        const fileID = idMatch[1];
+        const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
+        console.log('Converted URL:', trimmedUrl, '->', convertedUrl);
+        return convertedUrl;
+      }
+    }
+    
+    if (trimmedUrl.includes('drive.google.com/open?id=')) {
+      const idMatch = trimmedUrl.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        const fileID = idMatch[1];
+        const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
+        console.log('Converted URL:', trimmedUrl, '->', convertedUrl);
+        return convertedUrl;
+      }
+    }
+    
+    if (trimmedUrl.includes('docs.google.com/uc?id=')) {
+      const idMatch = trimmedUrl.match(/docs\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        const fileID = idMatch[1];
+        const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
+        console.log('Converted URL:', trimmedUrl, '->', convertedUrl);
+        return convertedUrl;
+      }
+    }
+    
+    return trimmedUrl;
+  }
+
+  renderCard(item) {
+    if (this.currentStyle?.isNewFormat && this.currentStyle?.template?.html) {
+      return this.renderCardFromTemplate(item);
+    }
+
+    const keys = Object.keys(item);
+    const nameKey = keys.find(k => k.toLowerCase().includes('name')) || keys[0];
+    const descKey = keys.find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('description'));
+    const priceKey = keys.find(k => k.toLowerCase().includes('price'));
+    const imageKey = keys.find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url'));
+    const tagsKey = keys.find(k => k.toLowerCase().includes('tag'));
+    const subtitleKey = keys.find(k => k.toLowerCase().includes('subtitle') || k.toLowerCase().includes('category'));
+
+    const useTextStyles = this.currentStyle?.textStyles && Object.keys(this.currentStyle.textStyles).length > 0;
+
+    let html = '';
+
+    if (imageKey && item[imageKey]) {
+      const originalUrl = item[imageKey];
+      const imageUrl = this.convertGoogleDriveUrl(originalUrl);
+      html += `<img src="${imageUrl}" alt="${item[nameKey] || ''}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';console.error('Image failed to load:', '${originalUrl}');" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">`;
+    }
+
+    if (subtitleKey && item[subtitleKey]) {
+      html += `<div class="subtitle">${item[subtitleKey]}</div>`;
+    }
+
+    if (nameKey && item[nameKey]) {
+      html += `<h3>${item[nameKey]}</h3>`;
+    }
+
+    if (priceKey && item[priceKey]) {
+      html += `<div class="price">${item[priceKey]}</div>`;
+    }
+
+    if (descKey && item[descKey]) {
+      html += `<p>${item[descKey]}</p>`;
+    }
+
+    if (tagsKey && item[tagsKey]) {
+      const tags = item[tagsKey].split(',').map(t => t.trim());
+      html += `<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">`;
+      tags.forEach(tag => {
+        html += `<span class="badge">${tag}</span>`;
+      });
+      html += `</div>`;
+    }
+
+    return html;
+  }
+
+  renderCardFromTemplate(item) {
+    let template = this.currentStyle.template.html;
+    const dataMapping = this.currentStyle.dataMapping || {};
+
+    for (const [field, possibleKeys] of Object.entries(dataMapping)) {
+      let value = '';
+
+      for (const key of possibleKeys) {
+        if (item[key]) {
+          value = item[key];
+          break;
+        }
+      }
+
+      if (!value) {
+        const fieldConfig = this.currentStyle.fields?.[field];
+        value = fieldConfig?.default || '';
+      }
+
+      if (field === 'image' && value) {
+        value = this.convertGoogleDriveUrl(value);
+      }
+
+      const regex = new RegExp(`{{${field}}}`, 'g');
+      template = template.replace(regex, value);
+    }
+
+    return template;
+  }
+
+  getShadowValue(shadow) {
+    const shadows = {
+      none: 'none',
+      sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+      md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+      xl: '0 20px 25px rgba(0, 0, 0, 0.15)'
+    };
+    return shadows[shadow] || shadows.md;
+  }
+
+  generateTextStylesCSS(textStyles) {
+    if (!textStyles || Object.keys(textStyles).length === 0) return '';
+
+    let css = '';
+
+    const styleSelectors = {
+      title: '.card h3',
+      subtitle: '.card .subtitle',
+      description: '.card p',
+      price: '.card .price',
+      badge: '.card .badge',
+      button: '.card button'
+    };
+
+    for (const [styleType, selector] of Object.entries(styleSelectors)) {
+      const style = textStyles[styleType];
+      if (!style) continue;
+
+      css += `\n${selector} {`;
+      if (style.fontSize) css += `font-size: ${style.fontSize}px;`;
+      if (style.fontWeight) css += `font-weight: ${style.fontWeight};`;
+      if (style.color) css += `color: ${style.color};`;
+      if (style.lineHeight) css += `line-height: ${style.lineHeight};`;
+      if (style.letterSpacing !== undefined) css += `letter-spacing: ${style.letterSpacing}px;`;
+      if (style.textAlign) css += `text-align: ${style.textAlign};`;
+      if (style.textTransform) css += `text-transform: ${style.textTransform};`;
+      css += '}';
+    }
+
+    return css;
+  }
+
+  generateAnimationCSS(enabled, hover, entry) {
+    if (!enabled) return '';
+
+    let css = '';
+
+    if (entry.enabled && entry.type) {
+      const duration = entry.duration || 0.4;
+      const delay = entry.stagger ? 0.1 : 0;
+      
+      const keyframes = {
+        fade: 'opacity: 0; opacity: 1;',
+        slideUp: 'transform: translateY(20px); opacity: 0; transform: translateY(0); opacity: 1;',
+        slideDown: 'transform: translateY(-20px); opacity: 0; transform: translateY(0); opacity: 1;',
+        slideLeft: 'transform: translateX(20px); opacity: 0; transform: translateX(0); opacity: 1;',
+        slideRight: 'transform: translateX(-20px); opacity: 0; transform: translateX(0); opacity: 1;',
+        scale: 'transform: scale(0.9); opacity: 0; transform: scale(1); opacity: 1;'
+      };
+
+      if (keyframes[entry.type]) {
+        css += `
+          @keyframes cardEntry {
+            from { ${keyframes[entry.type].split(';')[0]} }
+            to { ${keyframes[entry.type].split(';').slice(1).join(';')} }
+          }
+          .card {
+            animation: cardEntry ${duration}s ease-out ${delay}s backwards;
+          }
+        `;
+      }
+    }
+
+    return css;
+  }
+
+  refreshPreview() {
+    this.renderPreview();
+    this.showToast('Preview refreshed', 'success');
+  }
+
+  exportHtml() {
+    const html = this.generateHtml();
+    this.downloadFile(html, 'aura-canvas.html', 'text/html');
+    this.showToast('HTML exported', 'success');
+  }
+
+  exportProject() {
+    const project = {
+      sections: this.sections,
+      sheetData: this.sheetData,
+      styleSets: this.styleSets,
+      currentStyle: this.currentStyle,
+      gridConfig: this.gridConfig
+    };
+    const json = JSON.stringify(project, null, 2);
+    this.downloadFile(json, 'aura-canvas-project.json', 'application/json');
+    this.showToast('Project exported', 'success');
+  }
+
+  generateHtml() {
+    let html = `<!DOCTYPE html>
+<html${this.originalHtmlClass ? ' class="' + this.originalHtmlClass + '"' : ''}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura Canvas Export</title>
+`;
+
+    if (this.originalHead) {
+      html += this.originalHead;
+    }
+
+    if (this.currentStyle) {
+      html += `<style>
+        .grid-container {
+          max-width: ${this.gridConfig.maxWidth}px;
+          margin: 0 auto;
+          width: 100%;
+        }
+        .card {
+          background: ${this.currentStyle.cardBg};
+          color: ${this.currentStyle.cardText};
+          border: 1px solid ${this.currentStyle.cardBorder};
+          border-radius: ${this.currentStyle.cardRadius}px;
+          padding: ${this.currentStyle.cardPadding}px;
+          box-shadow: ${this.getShadowValue(this.currentStyle.cardShadow)};
+          display: flex;
+          flex-direction: column;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+        .card img {
+          transition: transform 0.2s ease;
+        }
+        .card:hover img {
+          transform: scale(1.05);
+        }
+        .section-framework {
+          position: relative;
+          border: 2px dashed #7c2bee;
+          padding: 8px;
+          margin: 8px 0;
+          background: rgba(124, 43, 238, 0.02);
+          border-radius: 4px;
+        }
+        .section-label {
+          position: absolute;
+          top: -10px;
+          left: 12px;
+          background: #7c2bee;
+          color: white;
+          padding: 2px 8px;
+          font-size: 12px;
+          border-radius: 2px;
+          font-weight: 500;
+        }
+      </style>`;
+    }
+
+    const hasGridSections = this.sections.some(s => s.visible && s.gridEnabled);
+    if (hasGridSections) {
+      const gridCSS = this.gridGenerator.generateFullGridCSS({
+        columns: this.gridConfig.columns,
+        gap: this.gridConfig.gap,
+        minWidth: this.gridConfig.minWidth,
+        maxWidth: this.gridConfig.maxWidth,
+        containerClass: '.grid-container'
+      });
+      html += `<style>${gridCSS}</style>`;
+    }
+
+    html += `</head>
+<body>
+`;
+
+    this.sections.forEach(section => {
+      if (section.visible) {
+        if (section.gridEnabled) {
+          html += `<div class="grid-container">`;
+          if (this.sheetData.length > 0) {
+            this.sheetData.forEach(item => {
+              html += `<div class="card">${this.renderCard(item)}</div>`;
+            });
+          } else {
+            html += `<div class="card">
+              <img src="https://via.placeholder.com/300x300/7c2bee/ffffff?text=Sample" alt="Sample Image" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">Sample Product</h3>
+              <div style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: var(--primary, #7c2bee);">$99</div>
+              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #6b7280;">This is a sample product description. Please load Google Sheets data first</p>
+            </div>`;
+          }
+          html += `</div>`;
+        } else {
+          html += section.content;
+        }
+      }
+    });
+
+    html += `</body>
+</html>`;
+
+    return html;
+  }
+
+  downloadFile(content, filename, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  saveData() {
+    const data = {
+      sections: this.sections,
+      styleSets: this.styleSets,
+      currentStyleId: this.currentStyle?.id,
+      gridConfig: this.gridConfig,
+      originalHead: this.originalHead,
+      originalHtmlClass: this.originalHtmlClass
+    };
+    localStorage.setItem('auraCanvasData', JSON.stringify(data));
+  }
+
+  loadSavedData() {
+    const saved = localStorage.getItem('auraCanvasData');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        this.sections = data.sections || [];
+        this.styleSets = data.styleSets || [];
+        this.currentStyle = this.styleSets.find(s => s.id === data.currentStyleId) || null;
+        this.gridConfig = data.gridConfig || this.gridConfig;
+        this.originalHead = data.originalHead || '';
+        this.originalHtmlClass = data.originalHtmlClass || '';
+        this.renderSections();
+        this.renderStyleSets();
+      } catch (error) {
+        console.error('Failed to load saved data:', error);
+      }
+    }
+  }
+
+  async loadStyleFiles() {
+    try {
+      const response = await fetch('style/');
+      const htmlText = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+      const links = Array.from(doc.querySelectorAll('a'));
+      const jsonFiles = links
+        .map(link => link.getAttribute('href'))
+        .filter(href => href && href.endsWith('.json') && href !== 'README.md');
+
+      for (const file of jsonFiles) {
+        try {
+          const styleResponse = await fetch(`style/${file}`);
+          if (styleResponse.ok) {
+            const styleData = await styleResponse.json();
+
+            const isNewFormat = styleData.template && (styleData.template.html || styleData.template.css);
+
+            const styleSet = {
+              id: styleData.id || Date.now() + Math.random(),
+              name: styleData.name || 'Untitled Style',
+              description: styleData.description || '',
+              cardBg: styleData.cardBg || styleData.cardStyle?.bg || '#ffffff',
+              cardText: styleData.cardText || styleData.cardStyle?.text || '#1f2937',
+              cardBorder: styleData.cardBorder || styleData.cardStyle?.border || '#e5e7eb',
+              cardAccent: styleData.cardAccent || styleData.fields?.price?.color || '#7c2bee',
+              cardRadius: styleData.cardRadius || styleData.cardStyle?.radius || 12,
+              cardPadding: styleData.cardPadding || styleData.cardStyle?.padding || 16,
+              cardShadow: styleData.cardShadow || styleData.cardStyle?.shadow || 'md',
+              fields: styleData.fields || {},
+              hover: styleData.hover || {},
+              template: styleData.template || null,
+              grid: styleData.grid || null,
+              dataMapping: styleData.dataMapping || null,
+              textStyles: styleData.textStyles || {},
+              animation: styleData.animation || { enabled: false },
+              isNewFormat: isNewFormat
+            };
+
+            this.styleSets.push(styleSet);
+            console.log(`Loaded style set: ${styleSet.name} (${file})`);
+          }
+        } catch (error) {
+          console.log(`Failed to load style file ${file}:`, error);
+        }
+      }
+
+      if (this.styleSets.length > 0 && !this.currentStyle) {
+        this.currentStyle = this.styleSets[0];
+      }
+
+      console.log(`Total style sets loaded: ${this.styleSets.length}`);
+    } catch (error) {
+      console.log('Failed to load style files:', error);
+    }
+  }
+
+  showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        ${type === 'success' ? '<path d="M10 0a10 10 0 100 20 10 10 0 000-20zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/>' : ''}
+        ${type === 'error' ? '<path d="M10 0a10 10 0 100 20 10 10 0 000-20zm1 15H9v-2h2v2zm0-4H9V5h2v6z"/>' : ''}
+      </svg>
+      <span>${message}</span>
+    `;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = 'slideIn 0.3s ease reverse';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+}
+
+const editor = new AuraCanvasEditor();

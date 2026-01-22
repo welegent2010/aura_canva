@@ -1,0 +1,714 @@
+<html lang="en" class="scroll-smooth"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity Atlas | Packaged thinking for better decisions</title>
+    
+    <!-- Fonts: Cormorant Garamond for editorial headings, Inter for clean UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        paper: '#F6F1E7',
+                        ink: '#1B1B1B',
+                        sienna: '#B64A2B',
+                        slate: '#2F3A56',
+                        border: 'rgba(27, 27, 27, 0.08)'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    spacing: {
+                        '1200': '1200px',
+                        'col-4': '384px',
+                        'col-5': '486px',
+                        'col-6': '588px',
+                        'col-7': '690px',
+                        'col-8': '792px',
+                    },
+                    backgroundImage: {
+                        'paper-grain': "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRjZGMUU3Ii8+CjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMxQjFCMUIiIG9wYWNpdHk9IjAuMDIiLz4KPC9zdmc+')",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F6F1E7;
+            color: #1B1B1B;
+            font-feature-settings: "ss01", "cv05";
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom scrollbar to match aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F6F1E7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E5DNC6; /* Darker cream */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D1C8B9;
+        }
+        
+        .editorial-tracking {
+            letter-spacing: -0.02em;
+        }
+        .caps-tracking {
+            letter-spacing: 0.08em;
+        }
+        
+        /* Subtle image blending */
+        img {
+            mix-blend-mode: multiply;
+        }
+        /* Reset blend mode for specific images if needed */
+        .no-blend img {
+            mix-blend-mode: normal;
+        }
+
+        /* Custom Input Styles */
+        .input-reset {
+            appearance: none;
+            outline: none;
+            background: transparent;
+        }
+    </style>
+<link id="all-fonts-link-font-geist" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-geist">.font-geist { font-family: 'Geist', sans-serif !important; }</style><link id="all-fonts-link-font-roboto" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-roboto">.font-roboto { font-family: 'Roboto', sans-serif !important; }</style><link id="all-fonts-link-font-montserrat" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-montserrat">.font-montserrat { font-family: 'Montserrat', sans-serif !important; }</style><link id="all-fonts-link-font-poppins" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-poppins">.font-poppins { font-family: 'Poppins', sans-serif !important; }</style><link id="all-fonts-link-font-playfair" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&amp;display=swap"><style id="all-fonts-style-font-playfair">.font-playfair { font-family: 'Playfair Display', serif !important; }</style><link id="all-fonts-link-font-instrument-serif" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-instrument-serif">.font-instrument-serif { font-family: 'Instrument Serif', serif !important; }</style><link id="all-fonts-link-font-merriweather" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&amp;display=swap"><style id="all-fonts-style-font-merriweather">.font-merriweather { font-family: 'Merriweather', serif !important; }</style><link id="all-fonts-link-font-bricolage" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-bricolage">.font-bricolage { font-family: 'Bricolage Grotesque', sans-serif !important; }</style><link id="all-fonts-link-font-jakarta" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-jakarta">.font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif !important; }</style><link id="all-fonts-link-font-manrope" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-manrope">.font-manrope { font-family: 'Manrope', sans-serif !important; }</style><link id="all-fonts-link-font-space-grotesk" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-space-grotesk">.font-space-grotesk { font-family: 'Space Grotesk', sans-serif !important; }</style><link id="all-fonts-link-font-work-sans" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-work-sans">.font-work-sans { font-family: 'Work Sans', sans-serif !important; }</style><link id="all-fonts-link-font-pt-serif" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&amp;display=swap"><style id="all-fonts-style-font-pt-serif">.font-pt-serif { font-family: 'PT Serif', serif !important; }</style><link id="all-fonts-link-font-geist-mono" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-geist-mono">.font-geist-mono { font-family: 'Geist Mono', monospace !important; }</style><link id="all-fonts-link-font-space-mono" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap"><style id="all-fonts-style-font-space-mono">.font-space-mono { font-family: 'Space Mono', monospace !important; }</style><link id="all-fonts-link-font-quicksand" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-quicksand">.font-quicksand { font-family: 'Quicksand', sans-serif !important; }</style><link id="all-fonts-link-font-nunito" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-nunito">.font-nunito { font-family: 'Nunito', sans-serif !important; }</style><link id="all-fonts-link-font-newsreader" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..800&amp;display=swap"><style id="all-fonts-style-font-newsreader">.font-newsreader { font-family: 'Newsreader', serif !important; }</style><link id="all-fonts-link-font-google-sans-flex" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-google-sans-flex">.font-google-sans-flex { font-family: 'Google Sans Flex', sans-serif !important; }</style><link id="all-fonts-link-font-oswald" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-oswald">.font-oswald { font-family: 'Oswald', sans-serif !important; }</style><link id="all-fonts-link-font-dm-sans" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-dm-sans">.font-dm-sans { font-family: 'DM Sans', sans-serif !important; }</style><link id="all-fonts-link-font-cormorant" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-cormorant">.font-cormorant { font-family: 'Cormorant Garamond', serif !important; }</style></head>
+<body class="bg-paper text-ink font-sans selection:bg-sienna selection:text-white bg-paper-grain relative overflow-x-hidden">
+
+    <!-- 01. Nav -->
+    <nav class="w-full h-[88px] flex items-center justify-center sticky top-0 z-50 bg-paper/95 backdrop-blur-sm border-b border-border">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-7 h-7 rounded-full border border-ink flex items-center justify-center bg-transparent group-hover:bg-ink group-hover:text-paper transition-colors duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="16" height="16" viewBox="0 0 24 24" data-icon="lucide:globe" data-width="16" data-height="16" data-stroke-width="1.5" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20M2 12h20"></path></g></svg>
+                </div>
+                <div class="flex flex-col leading-none">
+                    <span class="uppercase caps-tracking cursor-pointer text-sm font-semibold font-serif" onclick="window.location.href='/home'" role="button">Clarity Atlas</span>
+                </div>
+            </a>
+
+            <!-- Links -->
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a href="/page2-start-here" class="hover:text-sienna transition-colors">Start Here</a>
+                <a href="/page3-library" class="hover:text-sienna transition-colors">Library</a>
+                <a href="/page4-product" class="hover:text-sienna transition-colors">Products</a>
+                <a href="/page5-work-with-me" class="hover:text-sienna transition-colors">Work With Me</a>
+                <a href="/page6-now" class="hover:text-sienna transition-colors relative">
+                    Now
+                    <span class="absolute -top-1 -right-2 w-1.5 h-1.5 bg-sienna rounded-full"></span>
+                </a>
+            </div>
+
+            <!-- CTA -->
+            <div class="flex items-center gap-6">
+                <a href="#" class="hidden lg:block hover:text-slate transition-colors text-sm font-medium">Newsletter</a>
+                <button class="text-paper hover:bg-slate transition-colors flex text-sm font-medium h-12 rounded-[14px] pr-6 pl-6 gap-x-2 gap-y-2 items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:brain-circuit" data-width="18" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 5a3 3 0 1 0-5.997.125a4 4 0 0 0-2.526 5.77a4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M9 13a4.5 4.5 0 0 0 3-4M6.003 5.125A3 3 0 0 0 6.401 6.5m-2.924 4.396a4 4 0 0 1 .585-.396M6 18a4 4 0 0 1-1.967-.516M12 13h4m-4 5h6a2 2 0 0 1 2 2v1M12 8h8m-4 0V5a2 2 0 0 1 2-2"></path><circle cx="16" cy="13" r=".5"></circle><circle cx="18" cy="3" r=".5"></circle><circle cx="20" cy="21" r=".5"></circle><circle cx="20" cy="8" r=".5"></circle></g></svg>
+                    Ask My Brain
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 02. Hero -->
+    <section class="flex w-full pt-20 pb-24 justify-center">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Content (Col 1-7) -->
+            <div class="lg:col-span-7 flex flex-col justify-center pr-0 lg:pr-12">
+                <span class="text-xs font-semibold uppercase caps-tracking text-sienna mb-6">Productized Knowledge for Modern Teams</span>
+                <h1 class="font-serif text-5xl lg:text-7xl lg:leading-[1.1] font-semibold editorial-tracking mb-8 text-ink">
+                    Turn messy experience into clear, sellable systems.
+                </h1>
+                <p class="text-lg leading-relaxed text-ink/80 mb-10 max-w-[580px]">
+                    I publish high-signal mental models, decision playbooks, and strategy notes—then package the best into tools you can use in a week, not a semester.
+                </p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <button class="h-12 px-8 bg-sienna text-paper text-sm font-medium rounded-[14px] hover:bg-slate transition-colors">
+                        Start Here
+                    </button>
+                    <button class="border-ink/20 text-ink hover:border-ink transition-colors text-sm font-medium bg-transparent h-12 border rounded-[14px] pr-8 pl-8 cursor-pointer" onclick="window.location.href='/page4-product'" role="button">
+                        Explore Products
+                    </button>
+                </div>
+                <p class="text-xs text-ink/50 mt-8 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:check-circle" data-width="14" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11l3 3L22 4"></path></g></svg>
+                    Trusted by operators in fintech, consumer, and SaaS. New essays every Sunday.
+                </p>
+            </div>
+
+            <!-- Right Visual (Col 8-12) -->
+            <div class="lg:col-span-5 relative mt-12 lg:mt-0">
+                <div class="aspect-[4/5] w-full rounded-[20px] overflow-hidden border border-ink/10 relative bg-[#EFE9DD]">
+                    <!-- Placeholder representing Editorial Abstract Photo -->
+                    <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/7faa3578-f7a1-4488-8ffc-57d935ec02d2_1600w.webp" alt="Abstract geometric paper structure" class="hover:scale-105 transition-transform duration-700 opacity-90 w-full h-full object-cover" style="">
+                    
+                    <!-- Decorative overlay lines -->
+                    <div class="absolute inset-0 border-[0.5px] border-white/20 m-4 rounded-[16px] pointer-events-none"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 03. Features -->
+    <section class="flex border-ink/5 w-full border-t pt-[72px] pb-[72px] justify-center">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0 grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Card A -->
+            <div class="bg-white/40 p-8 rounded-[20px] border border-ink/5 hover:border-ink/20 transition-all duration-300 group">
+                <div class="border-ink/10 flex text-sienna group-hover:scale-110 transition-transform w-16 h-16 border rounded-full mb-6 items-center justify-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="iconify iconify--lucide" aria-hidden="true" role="img" data-icon="lucide:grid-2x2" data-width="32" data-stroke-width="1.5" data-lucide="grid-2x2" data-icon-set="lucide" data-icon-replaced="true" style="color: rgb(182, 74, 43);">
+  <path d="M12 3v18"></path>
+  <path d="M3 12h18" class=""></path>
+  <rect x="3" y="3" width="18" height="18" rx="2" class=""></rect>
+</svg>
+</div>
+                <h3 class="font-serif text-2xl font-semibold mb-3">High-signal frameworks</h3>
+                <p class="text-sm leading-relaxed text-ink/70 mb-6">
+                    One model at a time. Clear definitions, edge cases, and when <i>not</i> to use it.
+                </p>
+                <div class="inline-flex items-center text-xs font-medium bg-ink/5 px-3 py-1.5 rounded-full text-ink/60">
+                    Reading time: 5–8 min
+                </div>
+            </div>
+
+            <!-- Card B -->
+            <div class="bg-white/40 p-8 rounded-[20px] border border-ink/5 hover:border-ink/20 transition-all duration-300 group">
+                <div class="w-16 h-16 mb-6 rounded-full bg-paper border border-ink/10 flex items-center justify-center text-sienna group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="32" height="32" viewBox="0 0 24 24" data-icon="lucide:file-text" data-width="32" data-stroke-width="1.5" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5M10 9H8m8 4H8m8 4H8"></path></g></svg>
+                </div>
+                <h3 class="font-serif text-2xl font-semibold mb-3">Reusable playbooks</h3>
+                <p class="text-sm leading-relaxed text-ink/70 mb-6">
+                    Decision templates, meeting scripts, and checklists that survive real-world chaos.
+                </p>
+                <div class="inline-flex items-center text-xs font-medium bg-ink/5 px-3 py-1.5 rounded-full text-ink/60">
+                    Downloadable tools
+                </div>
+            </div>
+
+            <!-- Card C -->
+            <div class="border-ink/5 hover:border-ink/20 transition-all duration-300 group bg-white/40 border rounded-[20px] pt-8 pr-8 pb-8 pl-8">
+                <div class="w-16 h-16 mb-6 rounded-full bg-paper border border-ink/10 flex items-center justify-center text-sienna group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="32" height="32" viewBox="0 0 24 24" data-icon="lucide:anchor" data-width="32" data-stroke-width="1.5" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 6v16m7-9l2-1a9 9 0 0 1-18 0l2 1m4-2h6"></path><circle cx="12" cy="4" r="2"></circle></g></svg>
+                </div>
+                <h3 class="font-serif text-2xl font-semibold mb-3">Strategy you can ship</h3>
+                <p class="text-sm leading-relaxed text-ink/70 mb-6">
+                    From insight → action: a weekly cadence that turns thinking into shipping.
+                </p>
+                <div class="inline-flex items-center text-xs font-medium bg-ink/5 px-3 py-1.5 rounded-full text-ink/60">
+                    Built for small teams
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 04. Start Here Guide -->
+    <section class="flex w-full pt-24 pb-24 justify-center">
+  <div class="w-full max-w-[1200px] px-6 lg:px-0">
+
+    <div class="mb-16 max-w-2xl">
+      <h2 class="font-serif text-4xl lg:text-5xl font-semibold mb-4 editorial-tracking">Start Here: pick your path</h2>
+      <p class="text-lg text-ink/70">Choose a route based on where you are today. Each path is a short sequence you can
+        finish in 30 minutes.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Path A: Beginner -->
+      <div class="group flex flex-col h-full bg-white rounded-[20px] border border-ink/10 overflow-hidden hover:shadow-lg hover:shadow-ink/5 transition-all duration-300">
+        <div class="h-40 w-full overflow-hidden bg-[#F0EBE0] relative">
+          <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/2da099d6-76c2-45c8-a052-214a70c27e86_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-80 w-full h-full object-cover" alt="Beginner path cover" style="">
+        </div>
+        <div class="p-8 flex flex-col flex-grow">
+          <span class="text-xs uppercase font-semibold tracking-wider text-slate mb-2">Beginner</span>
+          <h3 class="font-serif text-2xl font-semibold mb-2">Get clarity fast</h3>
+          <p class="text-sm text-ink/70 mb-6">Understand the core mental models I use weekly.</p>
+
+          <ul class="space-y-3 mb-8 flex-grow">
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              The 2×2 for better trade-offs
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              Default decisions vs. real decisions
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              A simple weekly review
+            </li>
+          </ul>
+
+          <a href="#" class="w-full py-3 flex items-center justify-center rounded-[14px] bg-paper border border-ink/10 text-sm font-medium hover:bg-ink hover:text-paper transition-colors">
+            Open Beginner Path
+          </a>
+        </div>
+      </div>
+
+      <!-- Path B: Builder -->
+      <div class="group flex flex-col h-full bg-white rounded-[20px] border border-ink/10 overflow-hidden hover:shadow-lg hover:shadow-ink/5 transition-all duration-300">
+        <div class="h-40 w-full overflow-hidden bg-[#F0EBE0] relative">
+          <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/19878212-6e42-4459-b3d1-ea705bc7d795_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-80 w-full h-full object-cover" alt="Builder path cover" style="">
+        </div>
+        <div class="p-8 flex flex-col flex-grow">
+          <span class="text-xs uppercase font-semibold tracking-wider text-slate mb-2">Builder</span>
+          <h3 class="font-serif text-2xl font-semibold mb-2">Build your system</h3>
+          <p class="text-sm text-ink/70 mb-6">Turn notes into assets: templates, checklists, and living docs.</p>
+
+          <ul class="space-y-3 mb-8 flex-grow">
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              Knowledge capture that doesn’t rot
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              Reusable meeting notes
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              A personal operating system
+            </li>
+          </ul>
+
+          <a href="#" class="w-full py-3 flex items-center justify-center rounded-[14px] bg-paper border border-ink/10 text-sm font-medium hover:bg-ink hover:text-paper transition-colors">
+            Open Builder Path
+          </a>
+        </div>
+      </div>
+
+      <!-- Path C: Expert -->
+      <div class="group flex flex-col h-full bg-white rounded-[20px] border border-ink/10 overflow-hidden hover:shadow-lg hover:shadow-ink/5 transition-all duration-300">
+        <div class="h-40 w-full overflow-hidden bg-[#F0EBE0] relative">
+          <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/aa779cc5-8d74-4516-947b-6bf244810742_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-80 w-full h-full object-cover graysca" alt="Expert path cover" style="">
+        </div>
+        <div class="p-8 flex flex-col flex-grow">
+          <span class="text-xs uppercase font-semibold tracking-wider text-slate mb-2">Expert</span>
+          <h3 class="font-serif text-2xl font-semibold mb-2">Go deep</h3>
+          <p class="text-sm text-ink/70 mb-6">Case notes, contrarian takes, and second-order thinking.</p>
+
+          <ul class="space-y-3 mb-8 flex-grow">
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              Strategy under constraints
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              Second-order effects
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="14" height="14" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="14" class="iconify text-sienna mt-0.5 iconify--lucide">
+                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path>
+              </svg>
+              How to design incentives
+            </li>
+          </ul>
+
+          <a href="#" class="w-full py-3 flex items-center justify-center rounded-[14px] bg-paper border border-ink/10 text-sm font-medium hover:bg-ink hover:text-paper transition-colors">
+            Open Expert Path
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+    <!-- 05. AI Insight Library -->
+    <section class="flex border-y border-ink/5 bg-white w-full pt-24 pb-24 justify-center">
+  <div class="w-full max-w-[1200px] px-6 lg:px-0 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-6 items-center">
+
+    <!-- Left Text (6 cols) -->
+    <div class="lg:col-span-6 pr-0 lg:pr-12">
+      <div class="flex items-center gap-2 mb-4 text-sienna">
+        <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:sparkles" data-width="18" class="iconify iconify--lucide">
+          <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+            <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4m2-2h-4">
+            </path>
+            <circle cx="4" cy="20" r="2"></circle>
+          </g>
+        </svg>
+        <span class="text-xs uppercase font-semibold tracking-wider">AI Powered</span>
+      </div>
+      <h2 class="font-serif text-4xl font-semibold mb-6 editorial-tracking text-ink">Ask My Brain</h2>
+      <p class="text-lg leading-relaxed text-ink/70 mb-8">
+        Skip keyword search. Ask a question in plain English—get a concise answer with the most relevant essays behind
+        it.
+      </p>
+
+      <!-- Sample Questions Chips -->
+      <div class="flex flex-wrap gap-3 mb-8">
+        <button class="px-4 py-2 rounded-full border border-ink/10 text-xs font-medium bg-paper hover:bg-slate hover:text-white transition-colors">
+                        "How do I decide what not to build?"
+                    </button>
+        <button class="px-4 py-2 rounded-full border border-ink/10 text-xs font-medium bg-paper hover:bg-slate hover:text-white transition-colors">
+                        "Spot second-order effects?"
+                    </button>
+        <button class="px-4 py-2 rounded-full border border-ink/10 text-xs font-medium bg-paper hover:bg-slate hover:text-white transition-colors">
+                        "Design a weekly review?"
+                    </button>
+      </div>
+
+      <!-- Static AI Output -->
+      <div class="bg-paper p-6 rounded-[16px] border border-ink/5 relative mb-8">
+        <div class="absolute -top-3 left-6 px-2 bg-paper text-[10px] uppercase font-bold tracking-widest text-slate border border-ink/10 rounded">
+          Answer Preview</div>
+        <p class="font-serif text-lg italic text-ink/80 leading-relaxed">
+          "Use a constraints-first filter: capacity, risk, and reversibility. Then rank by compounding impact. If two
+          options tie, choose the one that improves your decision process."
+        </p>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <button class="h-12 px-8 bg-ink text-paper text-sm font-medium rounded-[14px] hover:bg-slate transition-colors shadow-lg shadow-ink/10">
+                        Try Ask My Brain
+                    </button>
+        <a href="/page3-library" class="underline decoration-ink/30 hover:decoration-ink underline-offset-4 text-sm font-medium">Browse the
+          Library</a>
+      </div>
+    </div>
+
+    <!-- Right Visual (6 cols) -->
+    <div class="lg:col-span-6">
+      <div class="aspect-[4/3] w-full rounded-[20px] bg-[#EAE5D9] border border-ink/10 relative overflow-hidden flex items-center justify-center p-8">
+        <!-- Abstract Visualization using CSS shapes and Icons -->
+        <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/37b1493f-fc4c-41df-a403-03de9a8f70ae_1600w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-70 w-full h-full object-cover" alt="Newsletter" style="">
+
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+    <!-- 06. Monetization Hub -->
+    <section class="flex w-full pt-24 pb-24 justify-center">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0 grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Product Card -->
+            <div class="flex flex-col bg-white rounded-[20px] border border-ink/10 overflow-hidden group">
+                <div class="h-[180px] w-full bg-slate/5 relative overflow-hidden">
+                    <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/7fb32866-0bea-4d2f-9f76-a8ed92e23730_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-70 w-full h-full object-cover" alt="Products" style="">
+                </div>
+                <div class="p-8 flex flex-col flex-grow">
+                    <h3 class="font-serif text-2xl font-semibold mb-2">Digital Products</h3>
+                    <p class="text-sm text-ink/70 mb-6 min-h-[40px]">Templates and field guides you can apply immediately.</p>
+                    
+                    <ul class="space-y-4 mb-8 flex-grow">
+                        <li class="flex justify-between items-center text-sm border-b border-ink/5 pb-2">
+                            <span>Decision OS (Notion)</span>
+                            <span class="font-medium">$49</span>
+                        </li>
+                        <li class="flex justify-between items-center text-sm border-b border-ink/5 pb-2">
+                            <span>Mental Models Guide</span>
+                            <span class="font-medium">$29</span>
+                        </li>
+                        <li class="flex justify-between items-center text-sm border-b border-ink/5 pb-2">
+                            <span>Strategy Sprint Course</span>
+                            <span class="font-medium">$99</span>
+                        </li>
+                    </ul>
+                    <a href="#" class="w-full py-3 text-center border border-ink text-sm font-medium rounded-[14px] hover:bg-ink hover:text-paper transition-colors">View Products</a>
+                </div>
+            </div>
+
+            <!-- Consulting Card -->
+            <div class="flex flex-col bg-ink text-paper rounded-[20px] border border-ink overflow-hidden group">
+                <div class="h-[180px] w-full bg-white/5 relative overflow-hidden">
+                    <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/c7dd2522-3d92-488e-b766-080ca2dbfbcb_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-40 mix-blend-overlay w-full h-full object-cover" alt="Consulting">
+                </div>
+                <div class="p-8 flex flex-col flex-grow">
+                    <h3 class="font-serif text-2xl font-semibold mb-2">Consulting</h3>
+                    <p class="text-sm text-paper/70 mb-6 min-h-[40px]">Fast clarity for teams under pressure—without the fluff.</p>
+                    
+                    <ul class="space-y-4 mb-8 flex-grow text-paper/90">
+                        <li class="flex justify-between items-center text-sm border-b border-paper/10 pb-2">
+                            <span class="">90-Min Clarity Session</span>
+                            <span class="font-medium">$350</span>
+                        </li>
+                        <li class="flex justify-between items-center text-sm border-b border-paper/10 pb-2">
+                            <span class="">2-Week Strategy Reset</span>
+                            <span class="font-medium">$2,400</span>
+                        </li>
+                        <li class="flex justify-between items-center text-sm border-b border-paper/10 pb-2">
+                            <span class="">Executive Coaching</span>
+                            <span class="font-medium">$900/mo</span>
+                        </li>
+                    </ul>
+                    <a href="/page5-work-with-me" class="text-ink hover:bg-sienna hover:text-paper transition-colors text-sm font-medium text-center w-full rounded-[14px] pt-3 pb-3">Work With Me</a>
+                </div>
+            </div>
+
+            <!-- Newsletter Card -->
+            <div class="flex flex-col bg-white rounded-[20px] border border-ink/10 overflow-hidden group">
+                <div class="h-[180px] w-full bg-sienna/5 relative overflow-hidden">
+                    <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/8079f1a6-6f17-4350-8e27-6da09475bea6_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-70 w-full h-full object-cover" alt="Newsletter" style="">
+                </div>
+                <div class="p-8 flex flex-col flex-grow">
+                    <h3 class="font-serif text-2xl font-semibold mb-2">Sunday Signals</h3>
+                    <p class="text-sm text-ink/70 mb-6 min-h-[40px]">One model. Five minutes. Every Sunday.</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8 flex-grow">
+                        <div class="p-3 bg-paper rounded-lg border border-ink/5">
+                            <div class="text-lg font-semibold">24k+</div>
+                            <div class="text-[10px] uppercase tracking-wider text-ink/50">Readers</div>
+                        </div>
+                        <div class="p-3 bg-paper rounded-lg border border-ink/5">
+                            <div class="text-lg font-semibold">12</div>
+                            <div class="text-[10px] uppercase tracking-wider text-ink/50">Last 90 Days</div>
+                        </div>
+                        <div class="col-span-2 p-3 bg-paper rounded-lg border border-ink/5 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="16" height="16" viewBox="0 0 24 24" data-icon="lucide:clock" data-width="16" class="iconify text-sienna iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="10"></circle></g></svg>
+                            <span class="text-sm text-ink/70">Typical read time: 4–6 min</span>
+                        </div>
+                    </div>
+                    <a href="/page5-work-with-me" class="border-ink hover:bg-ink hover:text-paper transition-colors text-sm font-medium text-center w-full border rounded-[14px] pt-3 pb-3">Join Free</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 07. Testimonials -->
+    <section class="w-full py-24 flex justify-center bg-white border-y border-ink/5">
+  <div class="w-full max-w-[1200px] px-6 lg:px-0">
+
+    <div class="mb-16 text-center max-w-2xl mx-auto">
+      <h2 class="font-serif text-4xl font-semibold mb-4 editorial-tracking">What clients say</h2>
+      <p class="text-lg text-ink/70">Clear thinking is a competitive advantage. Here’s what changed after we shipped the
+        system.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- T1 -->
+      <div class="p-8 bg-paper rounded-[20px] border border-ink/5 flex flex-col sm:flex-row gap-6 items-start">
+        <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/2cdd1035-405b-48dd-99b2-92ae8ad0f037_320w.webp" alt="Maya" class="border-ink/10 flex-shrink-0 w-[72px] h-[72px] object-cover border rounded-full" style="">
+        <div class="">
+          <blockquote class="font-serif text-lg leading-relaxed italic mb-4">“We replaced vague debates with a simple
+            decision rubric. In two weeks, our roadmap meeting went from 90 minutes to 35.”</blockquote>
+          <div class="flex justify-between items-end border-t border-ink/10 pt-4">
+            <div class="">
+              <div class="font-semibold text-sm">Maya Chen</div>
+              <div class="text-xs text-ink/50">Product Lead, Fintech</div>
+            </div>
+            <div class="text-xs font-semibold text-sienna bg-sienna/5 px-2 py-1 rounded">Time ↓ 61%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- T2 -->
+      <div class="p-8 bg-paper rounded-[20px] border border-ink/5 flex flex-col sm:flex-row gap-6 items-start">
+        <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/5b8ea1db-962f-40c8-a008-26ac1e09a7bc_320w.webp" alt="Daniel" class="border-ink/10 flex-shrink-0 w-[72px] h-[72px] object-cover border rounded-full" style="">
+        <div class="">
+          <blockquote class="font-serif text-lg leading-relaxed italic mb-4">“The playbooks turned our ‘tribal
+            knowledge’ into a living system. New hires ramped in days instead of weeks.”</blockquote>
+          <div class="flex justify-between items-end border-t border-ink/10 pt-4">
+            <div class="">
+              <div class="font-semibold text-sm">Daniel Rivera</div>
+              <div class="text-xs text-ink/50">Head of Growth, B2C</div>
+            </div>
+            <div class="text-xs font-semibold text-sienna bg-sienna/5 px-2 py-1 rounded">Ramp ↓ 40%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- T3 -->
+      <div class="p-8 bg-paper rounded-[20px] border border-ink/5 flex flex-col sm:flex-row gap-6 items-start">
+        <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/77e64e75-f3a2-4e29-856f-778a7735022f_320w.webp" alt="Amina" class="border-ink/10 flex-shrink-0 w-[72px] h-[72px] object-cover border rounded-full" style="">
+        <div class="">
+          <blockquote class="font-serif text-lg leading-relaxed italic mb-4">“Clarity Atlas didn’t give us more ideas—it
+            gave us better constraints. Alignment finally felt calm and specific.”</blockquote>
+          <div class="flex justify-between items-end border-t border-ink/10 pt-4">
+            <div class="">
+              <div class="font-semibold text-sm">Amina Hassan</div>
+              <div class="text-xs text-ink/50">COO, Boutique SaaS</div>
+            </div>
+            <div class="text-xs font-semibold text-sienna bg-sienna/5 px-2 py-1 rounded">Alignment ↑</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- T4 -->
+      <div class="p-8 bg-paper rounded-[20px] border border-ink/5 flex flex-col sm:flex-row gap-6 items-start">
+        <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/3e85e499-94bf-4870-9082-5987e9a28156_320w.webp" alt="Ethan" class="border-ink/10 flex-shrink-0 w-[72px] h-[72px] object-cover border rounded-full">
+        <div class="">
+          <blockquote class="font-serif text-lg leading-relaxed italic mb-4">“The ‘second-order effects’ lens saved us
+            from a costly pricing change. The framework paid for itself in one meeting.”</blockquote>
+          <div class="flex justify-between items-end border-t border-ink/10 pt-4">
+            <div>
+              <div class="font-semibold text-sm">Ethan Brooks</div>
+              <div class="text-xs text-ink/50">Founder, DevTools</div>
+            </div>
+            <div class="text-xs font-semibold text-sienna bg-sienna/5 px-2 py-1 rounded">Saved $$$</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- 08. Now Page Teaser -->
+    <section class="w-full py-24 flex justify-center">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left Text (7 cols) -->
+            <div class="lg:col-span-7">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-xs uppercase font-semibold tracking-wider text-ink/50">Live Status</span>
+                </div>
+                <h2 class="font-serif text-4xl font-semibold mb-6 editorial-tracking">Now</h2>
+                <p class="text-lg text-ink/70 mb-8 leading-relaxed">
+                    This month I’m building a decision cadence for small teams, reading about incentives, and collecting case notes on “strategy under constraints.”
+                </p>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex gap-4 items-baseline">
+                        <span class="text-xs font-bold uppercase w-20 text-sienna shrink-0 tracking-wide">Building</span>
+                        <span class="text-ink/80 text-sm">A lightweight “Decision Log” workflow for Notion</span>
+                    </li>
+                    <li class="flex gap-4 items-baseline">
+                        <span class="text-xs font-bold uppercase w-20 text-sienna shrink-0 tracking-wide">Reading</span>
+                        <span class="text-ink/80 text-sm"><i class="">Thinking in Systems</i> (re-reading), plus case studies on pricing</span>
+                    </li>
+                    <li class="flex gap-4 items-baseline">
+                        <span class="text-xs font-bold uppercase w-20 text-sienna shrink-0 tracking-wide">Exploring</span>
+                        <span class="text-ink/80 text-sm">Reversibility, incentives, and second-order effects</span>
+                    </li>
+                </ul>
+
+                <a href="/page5-work-with-me" class="inline-flex items-center gap-2 border-ink/30 hover:border-ink hover:gap-3 transition-all text-sm font-semibold border-b pb-1">
+                    See what I’m doing now
+                    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="16" height="16" viewBox="0 0 24 24" data-icon="lucide:arrow-right" data-width="16" class="iconify iconify--lucide"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7l-7 7"></path></svg>
+                </a>
+            </div>
+
+            <!-- Right Image (5 cols) -->
+            <div class="lg:col-span-5">
+                <div class="aspect-[4/5] rounded-[20px] overflow-hidden border border-ink/10 rotate-1 hover:rotate-0 transition-transform duration-500">
+                    <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/0088eb6d-fca8-432e-bca1-263ecc525f79_1600w.webp" alt="Desk workspace" class="opacity-90 w-full h-full object-cover">
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 09. Newsletter CTA -->
+    <section class="flex border-ink/5 w-full border-b pt-24 pb-24 justify-center">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0">
+            <div class="bg-ink rounded-[24px] text-paper overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+                
+                <div class="lg:col-span-8 p-12 lg:p-16 flex flex-col justify-center">
+                    <h2 class="font-serif text-4xl font-semibold mb-4 editorial-tracking">Sunday Signals</h2>
+                    <p class="text-lg text-paper/70 mb-8 max-w-lg">One model, five minutes, every Sunday—built for operators who hate fluff.</p>
+                    
+                    <form class="flex flex-col sm:flex-row gap-3 max-w-md w-full mb-6">
+                        <input type="email" placeholder="you@domain.com" class="input-reset flex-grow border-paper/20 text-paper placeholder-paper/40 focus:bg-paper/15 transition-colors text-sm h-12 border rounded-[12px] pr-4 pl-4">
+                        <button class="h-12 px-8 bg-paper text-ink text-sm font-semibold rounded-[12px] hover:bg-sienna hover:text-paper transition-colors">
+                            Join Free
+                        </button>
+                    </form>
+                    
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-paper/40 font-medium tracking-wide">
+                        <span class="flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="12" height="12" viewBox="0 0 24 24" data-icon="lucide:users" data-width="12" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3.128a4 4 0 0 1 0 7.744M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></g></svg> 24,600 readers</span>
+                        <span class="w-1 h-1 rounded-full bg-paper/20"></span>
+                        <span class="">4–6 min read</span>
+                        <span class="w-1 h-1 rounded-full bg-paper/20"></span>
+                        <span class="">No spam</span>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block lg:col-span-4 bg-[#232323] relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(45deg, #2F3A56 25%, transparent 25%, transparent 50%, #2F3A56 50%, #2F3A56 75%, transparent 75%, transparent); background-size: 20px 20px;"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/6b428e5e-6fb1-4aa4-a686-bc431a174944_800w.webp" class="group-hover:scale-105 transition-transform duration-700 opacity-80 w-full h-full object-cover" alt="Expert path cover">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="">
+      <path d="m22 7l-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path>
+      <rect width="20" height="16" x="2" y="4" rx="2" class=""></rect>
+    </g>
+  
+</div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. Footer -->
+    <footer class="w-full py-16 flex justify-center text-sm">
+        <div class="w-full max-w-[1200px] px-6 lg:px-0 grid grid-cols-1 md:grid-cols-12 gap-12">
+            
+            <div class="md:col-span-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-4 text-ink">
+                        <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="20" height="20" viewBox="0 0 24 24" data-icon="lucide:globe" data-width="20" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20M2 12h20"></path></g></svg>
+                        <span class="font-serif uppercase caps-tracking font-bold">Clarity Atlas</span>
+                    </div>
+                    <p class="text-ink/60 mb-8">Packaged thinking for better decisions.</p>
+                </div>
+                <div class="text-xs text-ink/40">
+                    © 2026 Clarity Atlas. All rights reserved.
+                </div>
+            </div>
+
+            <div class="md:col-span-4">
+                <div class="flex flex-col gap-3 font-medium">
+                    <a href="/page2-start-here" class="hover:text-sienna transition-colors">Start Here</a>
+                    <a href="/page3-library" class="hover:text-sienna transition-colors">Library</a>
+                    <a href="/page4-product" class="hover:text-sienna transition-colors">Products</a>
+                    <a href="/page5-work-with-me" class="hover:text-sienna transition-colors">Work With Me</a>
+                    <a href="/home" class="hover:text-sienna transition-colors">Now</a>
+                </div>
+            </div>
+
+            <div class="md:col-span-3 flex flex-col justify-between h-full">
+                <div class="flex gap-4">
+                    <a href="#" class="text-ink/40 hover:text-ink transition-colors"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:twitter" data-width="18" class="iconify iconify--lucide w-[18px] h-[18px]" stroke-width="2" data-icon-replaced="true" style="width: 18px; height: 18px; color: rgb(27, 27, 27);"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6c2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4c-.9-4.2 4-6.6 7-3.8c1.1 0 3-1.2 3-1.2" class=""></path></svg></a>
+                    <a href="#" class="text-ink/40 hover:text-ink transition-colors"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:linkedin" data-width="18" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class=""><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2a2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6M2 9h4v12H2z" class=""></path><circle cx="4" cy="4" r="2"></circle></g></svg></a>
+                    <a href="#" class="text-ink/40 hover:text-ink transition-colors"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:youtube" data-width="18" class="iconify iconify--lucide"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.5 17a24.1 24.1 0 0 1 0-10a2 2 0 0 1 1.4-1.4a49.6 49.6 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.1 24.1 0 0 1 0 10a2 2 0 0 1-1.4 1.4a49.6 49.6 0 0 1-16.2 0A2 2 0 0 1 2.5 17"></path><path d="m10 15l5-3l-5-3z"></path></g></svg></a>
+                </div>
+                <div class="flex gap-6 text-xs text-ink/40 mt-8 md:mt-0">
+                    <a href="#" class="hover:text-ink transition-colors">Privacy</a>
+                    <a href="#" class="hover:text-ink transition-colors">Terms</a>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+
+</body></html>

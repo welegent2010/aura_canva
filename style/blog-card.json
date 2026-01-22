@@ -1,0 +1,48 @@
+{
+  "name": "博客卡片",
+  "description": "适合博客文章的卡片样式，支持封面图、标题、摘要和标签",
+  "cardBg": "#ffffff",
+  "cardText": "#1f2937",
+  "cardBorder": "#e5e7eb",
+  "cardRadius": 16,
+  "cardPadding": 20,
+  "cardShadow": "sm",
+  "fields": {
+    "image": {
+      "key": "cover",
+      "altKey": "image",
+      "aspectRatio": "16/9",
+      "objectFit": "cover",
+      "borderRadius": 12,
+      "marginBottom": 16
+    },
+    "title": {
+      "key": "title",
+      "tag": "h3",
+      "fontSize": 18,
+      "fontWeight": 600,
+      "marginBottom": 12,
+      "lineHeight": 1.4
+    },
+    "summary": {
+      "key": "summary",
+      "altKey": "description",
+      "fontSize": 14,
+      "lineHeight": 1.6,
+      "color": "#6b7280",
+      "maxLines": 3
+    },
+    "tags": {
+      "key": "tags",
+      "altKey": "tag",
+      "fontSize": 12,
+      "color": "#7c2bee",
+      "fontWeight": 500
+    }
+  },
+  "hover": {
+    "transformY": -6,
+    "shadow": "md",
+    "imageScale": 1.03
+  }
+}

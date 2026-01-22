@@ -1,0 +1,84 @@
+{
+  "id": "minimal-blog-card",
+  "name": "极简博客卡片",
+  "description": "干净简洁的博客文章卡片设计",
+  "version": "1.0.0",
+  "thumbnail": "https://via.placeholder.com/300x200/64748b/ffffff?text=Blog+Card",
+  
+  "grid": {
+    "columns": 3,
+    "gap": 32,
+    "minWidth": 320,
+    "maxWidth": 1200,
+    "responsive": {
+      "mobile": { "columns": 1, "gap": 16 },
+      "tablet": { "columns": 2, "gap": 24 }
+    }
+  },
+  
+  "cardStyle": {
+    "bg": "#ffffff",
+    "text": "#1e293b",
+    "border": "transparent",
+    "radius": 0,
+    "padding": 0,
+    "shadow": "none"
+  },
+  
+  "template": {
+    "html": "<article class=\"card-article\">\n  <a href=\"{{link}}\" class=\"card-link\">\n    <div class=\"card-image-wrapper\">\n      <img src=\"{{image}}\" alt=\"{{title}}\" />\n    </div>\n    <div class=\"card-info\">\n      <div class=\"card-meta\">\n        <span class=\"card-date\">{{date}}</span>\n        <span class=\"card-category\">{{category}}</span>\n      </div>\n      <h2 class=\"card-title\">{{title}}</h2>\n      <p class=\"card-excerpt\">{{excerpt}}</p>\n      <div class=\"card-author\">\n        <img src=\"{{authorImage}}\" alt=\"{{author}}\" />\n        <span>{{author}}</span>\n      </div>\n    </div>\n  </a>\n</article>",
+    
+    "css": ".card-article {\n  background: var(--card-bg, #ffffff);\n}\n\n.card-link {\n  text-decoration: none;\n  color: inherit;\n  display: block;\n}\n\n.card-image-wrapper {\n  width: 100%;\n  aspect-ratio: 16/9;\n  margin-bottom: 24px;\n  overflow: hidden;\n}\n\n.card-image-wrapper img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n  transition: transform 0.4s ease;\n}\n\n.card-link:hover .card-image-wrapper img {\n  transform: scale(1.03);\n}\n\n.card-info {\n  padding: 0;\n}\n\n.card-meta {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  margin-bottom: 12px;\n}\n\n.card-date {\n  font-size: 13px;\n  color: #64748b;\n}\n\n.card-category {\n  font-size: 13px;\n  color: #7c2bee;\n  font-weight: 600;\n}\n\n.card-title {\n  font-size: 24px;\n  font-weight: 700;\n  color: #1e293b;\n  margin: 0 0 12px 0;\n  line-height: 1.3;\n}\n\n.card-excerpt {\n  font-size: 16px;\n  color: #475569;\n  line-height: 1.6;\n  margin: 0 0 20px 0;\n}\n\n.card-author {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n\n.card-author img {\n  width: 40px;\n  height: 40px;\n  border-radius: 50%;\n  object-fit: cover;\n}\n\n.card-author span {\n  font-size: 14px;\n  color: #475569;\n  font-weight: 500;\n}"
+  },
+  
+  "fields": {
+    "image": {
+      "required": true,
+      "default": "https://via.placeholder.com/800x450/64748b/ffffff?text=Blog+Image"
+    },
+    "title": {
+      "required": true,
+      "default": "文章标题"
+    },
+    "excerpt": {
+      "required": true,
+      "default": "文章摘要内容"
+    },
+    "date": {
+      "required": true,
+      "default": "2024-01-01"
+    },
+    "category": {
+      "required": true,
+      "default": "分类"
+    },
+    "author": {
+      "required": true,
+      "default": "作者名"
+    },
+    "authorImage": {
+      "required": false,
+      "default": "https://via.placeholder.com/100x100/64748b/ffffff?text=Author"
+    },
+    "link": {
+      "required": false,
+      "default": "#"
+    }
+  },
+  
+  "dataMapping": {
+    "image": ["image", "url", "封面", "封面图", "图片"],
+    "title": ["title", "name", "标题", "文章标题"],
+    "excerpt": ["excerpt", "description", "desc", "摘要", "简介"],
+    "date": ["date", "日期", "发布日期"],
+    "category": ["category", "分类", "标签"],
+    "author": ["author", "作者"],
+    "authorImage": ["authorImage", "authorUrl", "作者头像"],
+    "link": ["link", "url", "链接"]
+  },
+  
+  "animations": {
+    "entry": "fadeIn",
+    "hover": "scale"
+  }
+}
