@@ -94,31 +94,19 @@
             <div class="grid-controls">
               <div class="form-group">
                 <label class="form-label">Columns</label>
-                <div class="input-group">
-                  <input type="range" id="gridColumns" min="1" max="12" value="3" style="flex: 1;">
-                  <input type="number" id="gridColumnsNum" min="1" max="12" value="3" class="form-input" style="width: 80px;">
-                </div>
+                <input type="number" id="gridColumnsNum" min="1" max="12" value="3" class="form-input">
               </div>
               <div class="form-group">
                 <label class="form-label">Gap (px)</label>
-                <div class="input-group">
-                  <input type="range" id="gridGap" min="0" max="64" value="24" step="4" style="flex: 1;">
-                  <input type="number" id="gridGapNum" min="0" max="64" value="24" step="4" class="form-input" style="width: 80px;">
-                </div>
+                <input type="number" id="gridGapNum" min="0" max="100" value="24" class="form-input">
               </div>
               <div class="form-group">
                 <label class="form-label">Min Width (px)</label>
-                <div class="input-group">
-                  <input type="range" id="gridMinWidth" min="150" max="500" value="300" step="50" style="flex: 1;">
-                  <input type="number" id="gridMinWidthNum" min="150" max="500" value="300" step="50" class="form-input" style="width: 80px;">
-                </div>
+                <input type="number" id="gridMinWidthNum" min="100" max="800" value="300" class="form-input">
               </div>
               <div class="form-group">
                 <label class="form-label">Max Width (px)</label>
-                <div class="input-group">
-                  <input type="range" id="gridMaxWidth" min="600" max="2000" value="1200" step="100" style="flex: 1;">
-                  <input type="number" id="gridMaxWidthNum" min="600" max="2000" value="1200" step="100" class="form-input" style="width: 80px;">
-                </div>
+                <input type="number" id="gridMaxWidthNum" min="600" max="2500" value="1200" class="form-input">
               </div>
             </div>
             <button class="btn btn-primary btn-full" id="applyGridBtn" style="margin-top: 16px;">

@@ -59,22 +59,15 @@ class AuraCanvasEditor {
   }
 
   bindGridControls() {
-    const controls = ['gridColumns', 'gridGap', 'gridMinWidth', 'gridMaxWidth'];
+    const controls = ['gridColumnsNum', 'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum'];
     controls.forEach(id => {
-      const rangeInput = document.getElementById(id);
-      const numInput = document.getElementById(id + 'Num');
-      
-      rangeInput.addEventListener('input', () => {
-        numInput.value = rangeInput.value;
-        this.updateGridConfigFromControls();
-        this.updatePreviewFromControls();
-      });
-      
-      numInput.addEventListener('input', () => {
-        rangeInput.value = numInput.value;
-        this.updateGridConfigFromControls();
-        this.updatePreviewFromControls();
-      });
+      const input = document.getElementById(id);
+      if (input) {
+        input.addEventListener('input', () => {
+          this.updateGridConfigFromControls();
+          this.updatePreviewFromControls();
+        });
+      }
     });
   }
 
@@ -1359,7 +1352,10 @@ class AuraCanvasEditor {
         .map(link => link.getAttribute('href'))
         .filter(href => href && href.endsWith('.json') && href !== 'README.md');
 
+      console.log('Found JSON files:', jsonFiles);
+
       for (const file of jsonFiles) {
+        console.log('Loading style file:', file);
         try {
           const styleResponse = await fetch(`style/${file}`);
           if (styleResponse.ok) {
@@ -1401,8 +1397,11 @@ class AuraCanvasEditor {
       }
 
       console.log(`Total style sets loaded: ${this.styleSets.length}`);
+      console.log('Style sets:', this.styleSets);
+      this.renderStyleSets();
     } catch (error) {
       console.log('Failed to load style files:', error);
+      console.error('Error details:', error);
     }
   }
 
