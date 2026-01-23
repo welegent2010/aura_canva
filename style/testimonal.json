@@ -111,9 +111,9 @@
 
   "dataMapping": {
     "title": ["title", "category", "标题", "分类"],
-    "description": ["description", "quote", "content", "testimonial", "评论", "内容", "引言"],
+    "description": ["description", "quote", "content", "testimonial", "review", "评论", "内容", "引言"],
     "author": ["author", "clientName", "name", "作者", "客户姓名", "姓名"],
     "role": ["role", "position", "company", "职位", "角色", "公司", "单位"],
-    "image": ["image", "url", "avatar", "portrait", "图片", "图片链接", "头像", "人像"]
+    "image": ["image", "imageUrl", "url", "avatar", "portrait", "图片", "图片链接", "头像", "人像"]
   }
 }

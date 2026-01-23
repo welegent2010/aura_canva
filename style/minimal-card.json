@@ -129,10 +129,10 @@
   },
 
   "dataMapping": {
-    "image": ["image", "url", "图片", "图片链接"],
+    "image": ["image", "imageUrl", "url", "图片", "图片链接"],
     "name": ["name", "title", "商品名称", "名称"],
-    "description": ["description", "desc", "描述", "商品描述"],
+    "description": ["description", "desc", "review", "描述", "商品描述"],
     "price": ["price", "价格", "售价"],
-    "category": ["category", "分类"]
+    "category": ["category", "position", "分类"]
   }
 }

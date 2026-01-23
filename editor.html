@@ -45,6 +45,7 @@
         <div class="sidebar-tabs">
           <button class="tab active" data-tab="sections">Sections</button>
           <button class="tab" data-tab="data">Data Source</button>
+          <button class="tab" data-tab="tally">Tally Form</button>
           <button class="tab" data-tab="grid">Grid Config</button>
           <button class="tab" data-tab="styles">Style Sets</button>
         </div>
@@ -90,6 +91,40 @@
             <div id="dataPreview" style="margin-top: 20px;"></div>
           </div>
 
+          <div class="panel" id="tally-panel">
+            <h2 class="panel-title">Tally Form Embed</h2>
+            <div class="form-group">
+              <label class="form-label">Tally Shared Link</label>
+              <input type="text" class="form-input" id="tallyUrl" placeholder="https://tally.so/embed/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Container Width (px)</label>
+              <input type="number" class="form-input" id="tallyWidth" value="1200" min="320" max="1440">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Padding Top (px)</label>
+              <input type="number" class="form-input" id="tallyPaddingTop" value="60" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Padding Bottom (px)</label>
+              <input type="number" class="form-input" id="tallyPaddingBottom" value="60" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Padding Left (px)</label>
+              <input type="number" class="form-input" id="tallyPaddingLeft" value="20" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Padding Right (px)</label>
+              <input type="number" class="form-input" id="tallyPaddingRight" value="20" min="0">
+            </div>
+            <button class="btn btn-primary btn-full" id="addTallyBtn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0L3 5h2v7h6V5h2L8 0z"/>
+              </svg>
+              Add Tally Section
+            </button>
+          </div>
+
           <div class="panel" id="grid-panel">
             <h2 class="panel-title">Grid Configuration</h2>
             <div class="grid-controls">
@@ -116,75 +151,24 @@
           </div>
 
           <div class="panel" id="styles-panel">
-            <h2 class="panel-title">Style Set Configuration</h2>
+            <h2 class="panel-title">Style Sets (Google Sheet)</h2>
             <div class="form-group">
-              <label class="form-label">Quick Select Style Set</label>
-              <select class="form-select" id="styleSetSelect">
-                <option value="">Select Style Set...</option>
+              <label class="form-label">Style Sheet URL</label>
+              <input type="text" class="form-input" id="styleSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sheet Name (Select Style)</label>
+              <select class="form-select" id="styleSheetName">
+                <option value="">-- Load Sheet First --</option>
               </select>
             </div>
-            <div class="form-group">
-              <label class="form-label">Style Set Name</label>
-              <input type="text" class="form-input" id="styleSetName" placeholder="My Style Set">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Color Configuration</label>
-              <div class="color-picker-group">
-                <div class="color-picker-item">
-                  <input type="color" id="cardBg" value="#ffffff">
-                  <label for="cardBg">Card Background</label>
-                </div>
-                <div class="color-picker-item">
-                  <input type="color" id="cardText" value="#1f2937">
-                  <label for="cardText">Text Color</label>
-                </div>
-                <div class="color-picker-item">
-                  <input type="color" id="cardBorder" value="#e5e7eb">
-                  <label for="cardBorder">Border Color</label>
-                </div>
-                <div class="color-picker-item">
-                  <input type="color" id="cardAccent" value="#7c2bee">
-                  <label for="cardAccent">Accent Color</label>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Border Radius (px)</label>
-              <input type="range" id="cardRadius" min="0" max="24" value="12" style="width: 100%;">
-              <span id="cardRadiusValue">12</span>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Padding (px)</label>
-              <input type="range" id="cardPadding" min="8" max="32" value="16" step="4" style="width: 100%;">
-              <span id="cardPaddingValue">16</span>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Shadow Intensity</label>
-              <select class="form-select" id="cardShadow">
-                <option value="none">No Shadow</option>
-                <option value="sm">Small Shadow</option>
-                <option value="md" selected>Medium Shadow</option>
-                <option value="lg">Large Shadow</option>
-                <option value="xl">Extra Large Shadow</option>
-              </select>
-            </div>
-            <button class="btn btn-primary btn-full" id="saveStyleBtn" style="margin-top: 16px;">
-              Save Style Set
+            <button class="btn btn-primary btn-full" id="loadStyleSheetsBtn">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 2L3 7h2v7h6V7h2L8 2z"/>
+              </svg>
+              Load Styles
             </button>
-            <div style="display: flex; gap: 8px; margin-top: 12px;">
-              <button class="btn btn-secondary" id="importStyleBtn" style="flex: 1;">
-                Import File
-              </button>
-              <button class="btn btn-secondary" id="loadFromStyleFolderBtn" style="flex: 1;">
-                Load from Style Folder
-              </button>
-              <input type="file" id="styleFileInput" accept=".json" style="display: none;">
-            </div>
-            <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" id="showOnlyAppliedStyles" style="width: 16px; height: 16px; cursor: pointer;">
-              <label for="showOnlyAppliedStyles" style="font-size: 13px; cursor: pointer; color: #6b7280;">Show only applied styles</label>
-            </div>
-            <div class="style-set-list" id="styleSetList" style="margin-top: 12px;"></div>
+            <div id="stylePreview" style="margin-top: 20px;"></div>
           </div>
         </div>
       </aside>

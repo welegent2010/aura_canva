@@ -45,12 +45,9 @@ class AuraCanvasEditor {
     document.getElementById('exportProjectBtn').addEventListener('click', () => this.exportProject());
     document.getElementById('addSectionBtn').addEventListener('click', () => this.addSection());
     document.getElementById('loadDataBtn').addEventListener('click', () => this.loadSheetData());
-    document.getElementById('applyGridBtn').addEventListener('click', () => this.applyGridConfig());
-    document.getElementById('saveStyleBtn').addEventListener('click', () => this.saveStyleSet());
-    document.getElementById('importStyleBtn').addEventListener('click', () => this.importStyleSet());
-    document.getElementById('loadFromStyleFolderBtn').addEventListener('click', () => this.loadFromStyleFolder());
-    document.getElementById('styleFileInput').addEventListener('change', (e) => this.handleStyleFileSelect(e));
-    document.getElementById('showOnlyAppliedStyles').addEventListener('change', () => this.renderStyleSets());
+    document.getElementById('loadStyleSheetsBtn').addEventListener('click', () => this.loadStyleSheets());
+    document.getElementById('styleSheetName').addEventListener('change', () => this.loadSelectedStyle());
+    document.getElementById('addTallyBtn').addEventListener('click', () => this.addTallySection());
     document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
 
@@ -59,7 +56,6 @@ class AuraCanvasEditor {
     document.getElementById('previewMobileBtn').addEventListener('click', () => this.setPreviewWidth('mobile'));
 
     this.bindGridControls();
-    this.bindStyleControls();
   }
 
   bindGridControls() {
@@ -398,6 +394,12 @@ class AuraCanvasEditor {
 
     container.innerHTML = this.sections.map(section => {
       const styleSet = section.styleSetId ? this.styleSets.find(s => s.id === section.styleSetId) : null;
+      
+      let typeBadge = '';
+      if (section.type === 'tally') {
+        typeBadge = `<span class="type-badge" style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">Tally Form</span>`;
+      }
+      
       return `
       <div class="section-item ${this.selectedSection && this.selectedSection.id === section.id ? 'selected' : ''} ${!section.visible ? 'opacity-50' : ''}"
            data-id="${section.id}">
@@ -413,6 +415,7 @@ class AuraCanvasEditor {
         </div>
         <div class="section-item-preview">
           ${section.className || 'No Class'}
+          ${typeBadge}
           ${section.gridEnabled ? `
             <span class="grid-badge" style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">
               Grid: ${section.gridColumns || 3} cols
@@ -497,6 +500,7 @@ class AuraCanvasEditor {
       
       this.renderDataPreview();
       this.renderPreview();
+      this.renderStyleSets();
 
     } catch (error) {
       this.showToast('Failed to load data: ' + error.message, 'error');
@@ -716,6 +720,16 @@ class AuraCanvasEditor {
         };
       }
 
+      document.getElementById('cardBg').value = styleSet.cardBg;
+      document.getElementById('cardText').value = styleSet.cardText;
+      document.getElementById('cardBorder').value = styleSet.cardBorder;
+      document.getElementById('cardAccent').value = styleSet.cardAccent;
+      document.getElementById('cardRadius').value = styleSet.cardRadius;
+      document.getElementById('cardRadiusValue').textContent = styleSet.cardRadius;
+      document.getElementById('cardPadding').value = styleSet.cardPadding;
+      document.getElementById('cardPaddingValue').textContent = styleSet.cardPadding;
+      document.getElementById('cardShadow').value = styleSet.cardShadow;
+
       if (this.selectedSection) {
         this.selectedSection.gridEnabled = true;
         this.selectedSection.gridColumns = this.gridConfig.columns;
@@ -769,70 +783,170 @@ class AuraCanvasEditor {
   renderStyleSets() {
     const container = document.getElementById('styleSetList');
     const select = document.getElementById('styleSetSelect');
-    const showOnlyApplied = document.getElementById('showOnlyAppliedStyles').checked;
     
     let displayStyleSets = this.styleSets;
     
-    if (showOnlyApplied) {
-      const appliedIds = this.sections.filter(s => s.styleSetId).map(s => s.styleSetId);
-      displayStyleSets = this.styleSets.filter(s => appliedIds.includes(s.id));
+    if (this.currentStyle) {
+      displayStyleSets = [this.currentStyle];
     }
     
     if (displayStyleSets.length === 0) {
-      container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No style sets to display</p>';
+      container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No style set selected</p>';
       return;
     }
 
     container.innerHTML = displayStyleSets.map(styleSet => {
       const isAppliedToSelected = this.selectedSection && this.selectedSection.styleSetId === styleSet.id;
-      const isTestimonialStyle = styleSet.name.toLowerCase().includes('testimonial') || 
-                                styleSet.id.includes('testimonial') ||
-                                (styleSet.fields && styleSet.fields.author);
       
       let previewHtml = '';
       
-      if (isTestimonialStyle) {
+      if (styleSet.template && styleSet.template.html) {
+        const previewData = this.sheetData.length > 0 ? this.sheetData[0] : null;
+        const dataMapping = styleSet.dataMapping || {};
+        const fields = styleSet.fields || {};
+        
+        const fieldValues = {};
+        const imageDefault = fields.image?.default || '';
+        
+        if (previewData) {
+          console.log('=== Style Preview Data ===');
+          console.log('Style:', styleSet.name);
+          console.log('Preview data keys:', Object.keys(previewData));
+          console.log('Data mapping:', dataMapping);
+          console.log('Full preview data:', previewData);
+        } else {
+          console.log('=== Style Preview Data ===');
+          console.log('Style:', styleSet.name);
+          console.log('No preview data available (sheetData length:', this.sheetData.length, ')');
+        }
+        
+        for (const [fieldName, possibleKeys] of Object.entries(dataMapping)) {
+          let value = '';
+          
+          if (previewData) {
+            for (const key of possibleKeys) {
+              if (previewData[key] !== undefined && previewData[key] !== '') {
+                value = previewData[key];
+                console.log(`Found ${fieldName} from key "${key}":`, value);
+                break;
+              }
+            }
+          }
+          
+          if (!value) {
+            const fieldConfig = fields[fieldName];
+            value = fieldConfig?.default || '';
+            console.log(`Using default for ${fieldName}:`, value);
+          }
+          
+          fieldValues[fieldName] = value;
+        }
+        
+        if (fieldValues['image'] && fieldValues['image'] !== imageDefault) {
+          const originalImageUrl = fieldValues['image'];
+          fieldValues['image'] = this.convertGoogleDriveUrl(fieldValues['image']);
+          console.log('Image URL converted:', originalImageUrl, '->', fieldValues['image']);
+        }
+        
+        let template = styleSet.template.html;
+        for (const [field, value] of Object.entries(fieldValues)) {
+          const regex = new RegExp(`{{${field}}}`, 'g');
+          template = template.replace(regex, value);
+        }
+        
+        template = template.replace(/<img\s+/g, '<img crossorigin="anonymous" ');
+        
+        const css = styleSet.template.css || '';
+        const bg = styleSet.cardBg || styleSet.cardStyle?.bg || '#ffffff';
+        const text = styleSet.cardText || styleSet.cardStyle?.text || '#1f2937';
+        const border = styleSet.cardBorder || styleSet.cardStyle?.border || '#e5e7eb';
+        const radius = styleSet.cardRadius || styleSet.cardStyle?.radius || 12;
+        const padding = styleSet.cardPadding || styleSet.cardStyle?.padding || 16;
+        const shadow = styleSet.cardShadow || styleSet.cardStyle?.shadow || 'md';
+        
+        const shadowValue = this.getShadowValue(shadow);
+        
+        let textStylesCSS = '';
+        if (styleSet.textStyles) {
+          const ts = styleSet.textStyles;
+          if (ts.title) textStylesCSS += `--title-color: ${ts.title.color}; --title-font-size: ${ts.title.fontSize}px; --title-font-weight: ${ts.title.fontWeight}; --title-line-height: ${ts.title.lineHeight}; --title-letter-spacing: ${ts.title.letterSpacing}px; --title-text-align: ${ts.title.textAlign}; --title-text-transform: ${ts.title.textTransform};`;
+          if (ts.subtitle) textStylesCSS += `--subtitle-color: ${ts.subtitle.color}; --subtitle-font-size: ${ts.subtitle.fontSize}px; --subtitle-font-weight: ${ts.subtitle.fontWeight}; --subtitle-line-height: ${ts.subtitle.lineHeight}; --subtitle-letter-spacing: ${ts.subtitle.letterSpacing}px; --subtitle-text-align: ${ts.subtitle.textAlign}; --subtitle-text-transform: ${ts.subtitle.textTransform};`;
+          if (ts.description) textStylesCSS += `--description-color: ${ts.description.color}; --description-font-size: ${ts.description.fontSize}px; --description-font-weight: ${ts.description.fontWeight}; --description-line-height: ${ts.description.lineHeight}; --description-letter-spacing: ${ts.description.letterSpacing}px; --description-text-align: ${ts.description.textAlign}; --description-text-transform: ${ts.description.textTransform};`;
+          if (ts.author) textStylesCSS += `--author-color: ${ts.author.color}; --author-font-size: ${ts.author.fontSize}px; --author-font-weight: ${ts.author.fontWeight}; --author-line-height: ${ts.author.lineHeight}; --author-letter-spacing: ${ts.author.letterSpacing}px; --author-text-align: ${ts.author.textAlign}; --author-text-transform: ${ts.author.textTransform};`;
+          if (ts.role) textStylesCSS += `--role-color: ${ts.role.color}; --role-font-size: ${ts.role.fontSize}px; --role-font-weight: ${ts.role.fontWeight}; --role-line-height: ${ts.role.lineHeight}; --role-letter-spacing: ${ts.role.letterSpacing}px; --role-text-align: ${ts.role.textAlign}; --role-text-transform: ${ts.role.textTransform};`;
+          if (ts.price) textStylesCSS += `--price-color: ${ts.price.color}; --price-font-size: ${ts.price.fontSize}px; --price-font-weight: ${ts.price.fontWeight}; --price-line-height: ${ts.price.lineHeight}; --price-letter-spacing: ${ts.price.letterSpacing}px; --price-text-align: ${ts.price.textAlign}; --price-text-transform: ${ts.price.textTransform};`;
+        }
+        
         previewHtml = `
-          <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
-            <div style="font-size: 14px; font-weight: 600; color: ${styleSet.textStyles?.title?.color || '#6b7280'}; margin-bottom: 8px; text-transform: uppercase;">
-              ◆ Client Stories
-            </div>
-            <div style="font-size: 16px; font-weight: 400; font-style: italic; margin-bottom: 16px; line-height: 1.5;">
-              "ARKAL transformed our space with clear vision and thoughtful design. Every detail felt intentional."
-            </div>
-            <div style="display: flex; gap: 12px; align-items: center;">
-              <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-              <div>
-                <div style="font-size: 15px; font-weight: 500; color: ${styleSet.textStyles?.author?.color || '#1f2937'};">Lydia Chen</div>
-                <div style="font-size: 13px; color: ${styleSet.textStyles?.role?.color || '#6b7280'};">Director, Arcadia Builders</div>
-              </div>
-            </div>
+          <div class="card-preview-wrapper" style="max-width: 300px;">
+            <style>
+              .card-preview-wrapper {
+                --card-bg: ${bg};
+                --card-text: ${text};
+                --card-border: ${border};
+                --card-radius: ${radius}px;
+                --card-padding: ${padding}px;
+                --card-shadow: ${shadowValue};
+                ${textStylesCSS}
+              }
+              ${css}
+            </style>
+            ${template}
           </div>
         `;
       } else {
         const previewData = this.sheetData.length > 0 ? this.sheetData[0] : null;
-        const previewImage = previewData ? 
-          Object.keys(previewData).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url')) : null;
-        let previewImageUrl = previewImage && previewData[previewImage] ? 
-          previewData[previewImage] : 'https://via.placeholder.com/300x300/7c2bee/ffffff?text=Product';
-        const originalPreviewUrl = previewImageUrl;
-        previewImageUrl = this.convertGoogleDriveUrl(previewImageUrl);
-        const previewName = previewData ? 
-          Object.keys(previewData).find(k => k.toLowerCase().includes('name')) : null;
-        const previewNameText = previewName && previewData[previewName] ? 
-          previewData[previewName] : 'Product Name';
-        const previewPrice = previewData ? 
-          Object.keys(previewData).find(k => k.toLowerCase().includes('price')) : null;
-        const previewPriceText = previewPrice && previewData[previewPrice] ? 
-          previewData[previewPrice] : '$99';
-        const previewDesc = previewData ? 
-          Object.keys(previewData).find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('description')) : null;
-        const previewDescText = previewDesc && previewData[previewDesc] ? 
-          previewData[previewDesc] : 'This is a sample product description to demonstrate the style effect';
+        
+        let previewImageUrl = 'https://via.placeholder.com/300x300/7c2bee/ffffff?text=Product';
+        let previewNameText = 'Product Name';
+        let previewPriceText = '$99';
+        let previewDescText = 'This is a sample product description to demonstrate the style effect';
+        
+        if (previewData) {
+          const imageKeys = ['image', 'url', 'cover', '图片', '图片链接', '封面', '封面图'];
+          let previewImage = null;
+          for (const key of imageKeys) {
+            if (previewData[key]) {
+              previewImage = key;
+              break;
+            }
+          }
+          
+          if (previewImage && previewData[previewImage]) {
+            previewImageUrl = previewData[previewImage];
+          }
+          
+          const originalPreviewUrl = previewImageUrl;
+          previewImageUrl = this.convertGoogleDriveUrl(previewImageUrl);
+          
+          const nameKeys = ['name', 'title', '商品名称', '名称', '标题'];
+          for (const key of nameKeys) {
+            if (previewData[key]) {
+              previewNameText = previewData[key];
+              break;
+            }
+          }
+          
+          const priceKeys = ['price', '价格', '售价'];
+          for (const key of priceKeys) {
+            if (previewData[key]) {
+              previewPriceText = previewData[key];
+              break;
+            }
+          }
+          
+          const descKeys = ['description', 'desc', '描述', '商品描述', 'summary', '摘要'];
+          for (const key of descKeys) {
+            if (previewData[key]) {
+              previewDescText = previewData[key];
+              break;
+            }
+          }
+        }
         
         previewHtml = `
           <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
-            <img src="${previewImageUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';console.error('Preview image failed to load:', '${originalPreviewUrl}');" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
+            <img src="${previewImageUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
             <div class="mini-card-title" style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${previewNameText}</div>
             <div class="mini-card-accent" style="font-size: 18px; font-weight: 700; color: ${styleSet.cardAccent}; margin-bottom: 8px;">${previewPriceText}</div>
             <div class="mini-card-body" style="font-size: 13px; line-height: 1.5; color: #6b7280; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${previewDescText}</div>
@@ -1091,7 +1205,35 @@ class AuraCanvasEditor {
 
     this.sections.forEach(section => {
       if (section.visible) {
-        if (section.gridEnabled) {
+        if (section.type === 'tally') {
+          const config = section.config || {};
+          const width = config.width || 1200;
+          const padding = config.padding || { top: 60, bottom: 60, left: 20, right: 20 };
+          
+          html += `<div class="tally-section" style="
+            max-width: ${width}px;
+            margin: 0 auto;
+            padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
+            position: relative;
+            border: 2px dashed #10b981;
+            background: rgba(16, 185, 129, 0.02);
+            border-radius: 4px;
+          ">`;
+          html += `<div class="section-label" style="
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 2px;
+            font-weight: 500;
+            z-index: 10;
+          ">${section.name}</div>`;
+          html += `<iframe src="${section.url}" data-tally-open-widget="" data-tally-embed-id="" title="${section.name}" style="width: 100%; height: 600px; border: none; background: transparent;"></iframe>`;
+          html += `</div>`;
+        } else if (section.gridEnabled) {
           html += `<div class="grid-container">`;
           if (this.sheetData.length > 0) {
             this.sheetData.forEach(item => {
@@ -1144,7 +1286,7 @@ class AuraCanvasEditor {
 
     html += '</body></html>';
 
-    container.innerHTML = `<iframe class="preview-iframe" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads" referrerpolicy="no-referrer"></iframe>`;
+    container.innerHTML = `<iframe class="preview-iframe" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads"></iframe>`;
     const iframe = container.querySelector('iframe');
     iframe.srcdoc = html;
   }
@@ -1264,6 +1406,8 @@ class AuraCanvasEditor {
       const regex = new RegExp(`{{${field}}}`, 'g');
       template = template.replace(regex, value);
     }
+
+    template = template.replace(/<img\s+/g, '<img crossorigin="anonymous" ');
 
     return template;
   }
@@ -1526,6 +1670,213 @@ class AuraCanvasEditor {
         console.error('Failed to load saved data:', error);
       }
     }
+  }
+
+  extractSpreadsheetId(url) {
+    if (!url || typeof url !== 'string') {
+      return null;
+    }
+    
+    const patterns = [
+      /\/d\/([a-zA-Z0-9-_]+)/,
+      /spreadsheet\/d\/([a-zA-Z0-9-_]+)/,
+      /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    
+    return null;
+  }
+
+  async loadStyleSheets() {
+    const url = document.getElementById('styleSheetUrl').value;
+    if (!url) {
+      this.showToast('Please enter a style sheet URL', 'error');
+      return;
+    }
+
+    try {
+      this.showToast('Loading style sheets...', 'info');
+      
+      const spreadsheetId = this.extractSpreadsheetId(url);
+      if (!spreadsheetId) {
+        throw new Error('Invalid Google Sheets URL');
+      }
+
+      const sheets = await this.connector.listSheets(spreadsheetId);
+      
+      const select = document.getElementById('styleSheetName');
+      select.innerHTML = '<option value="">-- Select Style --</option>';
+      
+      sheets.forEach(sheet => {
+        const option = document.createElement('option');
+        option.value = sheet;
+        option.textContent = sheet;
+        select.appendChild(option);
+      });
+
+      this.styleSpreadsheetId = spreadsheetId;
+      this.showToast(`Found ${sheets.length} style sheets`, 'success');
+    } catch (error) {
+      console.error('Failed to load style sheets:', error);
+      this.showToast('Failed to load style sheets: ' + error.message, 'error');
+    }
+  }
+
+  async loadSelectedStyle() {
+    const sheetName = document.getElementById('styleSheetName').value;
+    if (!sheetName || !this.styleSpreadsheetId) {
+      return;
+    }
+
+    try {
+      this.showToast('Loading style from sheet: ' + sheetName, 'info');
+      
+      const data = await this.connector.readSheet(this.styleSpreadsheetId, sheetName);
+      if (!data || data.length === 0) {
+        throw new Error('No data found in sheet');
+      }
+
+      const styleSet = this.parseStyleFromSheet(data);
+      
+      this.styleSets = [styleSet];
+      this.currentStyle = styleSet;
+      
+      this.renderStyleSets();
+      this.renderStylePreview(styleSet);
+      
+      this.showToast('Style loaded successfully: ' + styleSet.name, 'success');
+    } catch (error) {
+      console.error('Failed to load style:', error);
+      this.showToast('Failed to load style: ' + error.message, 'error');
+    }
+  }
+
+  parseStyleFromSheet(data) {
+    const styleSet = {
+      id: Date.now(),
+      name: data[0]?.name || 'Style from Sheet',
+      description: data[0]?.description || '',
+      cardBg: data[0]?.cardBg || '#ffffff',
+      cardText: data[0]?.cardText || '#1f2937',
+      cardBorder: data[0]?.cardBorder || '#e5e7eb',
+      cardAccent: data[0]?.cardAccent || '#7c2bee',
+      cardRadius: parseInt(data[0]?.cardRadius) || 12,
+      cardPadding: parseInt(data[0]?.cardPadding) || 16,
+      cardShadow: data[0]?.cardShadow || 'md',
+      template: data[0]?.template ? JSON.parse(data[0].template) : null,
+      dataMapping: data[0]?.dataMapping ? JSON.parse(data[0].dataMapping) : null,
+      textStyles: data[0]?.textStyles ? JSON.parse(data[0].textStyles) : {},
+      grid: data[0]?.grid ? JSON.parse(data[0].grid) : null,
+      hover: data[0]?.hover ? JSON.parse(data[0].hover) : {},
+      animation: data[0]?.animation ? JSON.parse(data[0].animation) : { enabled: false },
+      isNewFormat: !!(data[0]?.template)
+    };
+
+    return styleSet;
+  }
+
+  renderStylePreview(styleSet) {
+    const previewContainer = document.getElementById('stylePreview');
+    if (!previewContainer) return;
+
+    let previewHtml = '';
+
+    if (styleSet.isNewFormat && styleSet.template) {
+      const previewData = this.getPreviewData(styleSet);
+      
+      if (previewData && styleSet.template.html) {
+        const template = styleSet.template.html;
+        const css = styleSet.template.css || '';
+        const bg = styleSet.cardBg;
+        const text = styleSet.cardText;
+        const border = styleSet.cardBorder;
+        const radius = styleSet.radius;
+        const padding = styleSet.padding;
+        const shadow = styleSet.cardShadow || 'md';
+        const shadowValue = this.getShadowValue(shadow);
+
+        const dataMapping = styleSet.dataMapping || {};
+        const textStyles = styleSet.textStyles || {};
+        
+        let textStylesCSS = '';
+        for (const [field, style] of Object.entries(textStyles)) {
+          textStylesCSS += `.${field}-style { ${style} }`;
+        }
+
+        let filledTemplate = template;
+        for (const [key, possibleKeys] of Object.entries(dataMapping)) {
+          const actualKey = possibleKeys.find(k => previewData[k] !== undefined);
+          let value = actualKey ? previewData[actualKey] : '';
+          
+          if (key === 'image' && value) {
+            value = this.convertGoogleDriveUrl(value);
+          }
+          
+          filledTemplate = filledTemplate.replace(new RegExp(`{${key}}`, 'g'), value || '');
+        }
+
+        previewHtml = `
+          <div class="card-preview-wrapper" style="max-width: 300px;">
+            <style>
+              .card-preview-wrapper {
+                --card-bg: ${bg};
+                --card-text: ${text};
+                --card-border: ${border};
+                --card-radius: ${radius}px;
+                --card-padding: ${padding}px;
+                --card-shadow: ${shadowValue};
+                ${textStylesCSS}
+              }
+              ${css}
+            </style>
+            ${filledTemplate}
+          </div>
+        `;
+      }
+    }
+
+    previewContainer.innerHTML = previewHtml || '<p>No preview available</p>';
+  }
+
+  addTallySection() {
+    const url = document.getElementById('tallyUrl').value;
+    const width = parseInt(document.getElementById('tallyWidth').value) || 1200;
+    const paddingTop = parseInt(document.getElementById('tallyPaddingTop').value) || 60;
+    const paddingBottom = parseInt(document.getElementById('tallyPaddingBottom').value) || 60;
+    const paddingLeft = parseInt(document.getElementById('tallyPaddingLeft').value) || 20;
+    const paddingRight = parseInt(document.getElementById('tallyPaddingRight').value) || 20;
+
+    if (!url) {
+      this.showToast('Please enter a Tally shared link', 'error');
+      return;
+    }
+
+    const embedUrl = url.replace('https://tally.so/', 'https://tally.so/embed/');
+    
+    const section = {
+      id: Date.now(),
+      type: 'tally',
+      url: embedUrl,
+      config: {
+        width: Math.min(Math.max(width, 320), 1440),
+        padding: {
+          top: paddingTop,
+          bottom: paddingBottom,
+          left: paddingLeft,
+          right: paddingRight
+        }
+      }
+    };
+
+    this.sections.push(section);
+    this.renderSections();
+    this.showToast('Tally form section added', 'success');
   }
 
   loadStyleFiles() {

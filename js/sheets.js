@@ -28,6 +28,29 @@ class GoogleSheetsConnector {
     return null;
   }
 
+  async listSheets(sheetId) {
+    if (!sheetId) {
+      throw new Error('Invalid Sheet ID');
+    }
+    
+    try {
+      const response = await fetch(`https://opensheet.elk.sh/${sheetId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sheet list: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      return Array.isArray(data) ? Object.keys(data) : [];
+    } catch (error) {
+      if (error.message.includes('fetch')) {
+        throw new Error('Network error: unable to fetch sheet list');
+      }
+      throw error;
+    }
+  }
+
   async fetchSheetData(sheetId, sheetName = 'Sheet1') {
     if (!sheetId) {
       throw new Error('Invalid Sheet ID');
@@ -54,6 +77,10 @@ class GoogleSheetsConnector {
       }
       throw error;
     }
+  }
+
+  async readSheet(sheetId, sheetName = 'Sheet1') {
+    return await this.fetchSheetData(sheetId, sheetName);
   }
 
   normalizeFields(data) {
