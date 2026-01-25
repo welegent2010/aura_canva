@@ -196,3 +196,5 @@ MIT License
 ---
 
 **Aura Canvas** - 让 HTML 编辑更简单
+
+<a href="https://www.buymeacoffee.com/xiaodong"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=xiaodong&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
