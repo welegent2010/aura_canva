@@ -1,0 +1,28 @@
+# Aura Canvas v0.2.0 - 快速开始
+
+## 安装说明
+
+1. 解压此文件到任意目录
+2. 双击 `editor.html` 直接打开，或
+3. 双击 `启动服务器.bat` 使用本地服务器
+
+## 主要功能
+
+- HTML导入与编辑
+- 网格卡片生成
+- 样式模板系统
+- Tally表单嵌入
+
+## 文档
+
+- 完整文档: README.md
+- 版本更新: RELEASE_v0.2_README.md
+- 更新日志: RELEASE_NOTES.md
+
+## 技术支持
+
+查看 README.md 了解详细使用说明
+
+---
+Version: 0.2.0
+Release Date: 2026-01-25

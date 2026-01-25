@@ -1,0 +1,17 @@
+VERSION=0.2.0
+RELEASE_DATE=2026-01-25
+BUILD_NUMBER=2
+
+CHANGELOG:
+- [NEW] Dual Grid Configuration (Apply Grid Config + Apply Modify)
+- [NEW] Auto-preview first card when style is selected
+- [NEW] Manifest-based style file loading system
+- [FIX] Removed duplicate style dropdown entries
+- [FIX] Fixed Import HTML and Tally double-click issue
+- [FIX] Fixed custom JSON style files not loading
+- [FIX] Improved thumbnail display with fallback
+- [IMPROVEMENT] Better event listener binding (cloneNode)
+- [IMPROVEMENT] Cleaner grid configuration workflow
+- [IMPROVEMENT] Enhanced error handling
+
+PREVIOUS_VERSION=0.1.0
