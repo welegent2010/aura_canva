@@ -25,6 +25,12 @@
           </svg>
           New Project
         </button>
+        <button class="btn btn-secondary" id="clearStorageBtn" title="Clear saved data and reload">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M3 2h10v1H3V2zm0 2h10v9H3V4zm2-3h6V2H5v1z"/>
+          </svg>
+          Clear Storage
+        </button>
         <button class="btn btn-secondary" id="importHtmlBtn">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M3 5h10v2H3zm0 4h10v2H3zm0 4h6v2H3z"/>
@@ -99,9 +105,24 @@
 
           <div class="panel" id="tally-panel">
             <h2 class="panel-title">Tally Form Embed</h2>
+            <p style="color: #6b7280; font-size: 13px; margin-bottom: 16px;">Choose ONE method below:</p>
+            
             <div class="form-group">
-              <label class="form-label">Tally Shared Link</label>
-              <input type="text" class="form-input" id="tallyUrl" placeholder="https://tally.so/embed/...">
+              <label class="form-label">Method 1: Direct Link (推荐)</label>
+              <input type="text" class="form-input" id="tallyDirectUrl" placeholder="https://tally.so/r/abc123 or https://tally.so/embed/abc123">
+              <small style="color: #10b981; font-size: 11px; margin-top: 4px; display: block;">
+                ✓ 粘贴 Tally 分享链接，系统会自动转换为 embed 格式
+              </small>
+            </div>
+            
+            <div style="text-align: center; color: #9ca3af; font-size: 12px; margin: 12px 0;">— OR —</div>
+            
+            <div class="form-group">
+              <label class="form-label">Method 2: Embed HTML Code</label>
+              <textarea class="form-input" id="tallyEmbedCode" rows="4" placeholder="<iframe src=&quot;https://tally.so/embed/abc123&quot; width=&quot;100%&quot; height=&quot;500&quot;></iframe>"></textarea>
+              <small style="color: #10b981; font-size: 11px; margin-top: 4px; display: block;">
+                ✓ 从 Tally 复制完整的 embed 代码（包含 &lt;iframe&gt; 标签）
+              </small>
             </div>
             <div class="form-group">
               <label class="form-label">Container Width (px)</label>
@@ -123,12 +144,20 @@
               <label class="form-label">Padding Right (px)</label>
               <input type="number" class="form-input" id="tallyPaddingRight" value="20" min="0">
             </div>
-            <button class="btn btn-primary btn-full" id="addTallyBtn">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 0L3 5h2v7h6V5h2L8 0z"/>
-              </svg>
-              Add Tally Section
-            </button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" id="addTallyBtn" style="flex: 1;">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 0L3 5h2v7h6V5h2L8 0z"/>
+                </svg>
+                Add Tally Section
+              </button>
+              <button class="btn btn-secondary" id="applyTallySettingsBtn" style="flex: 1;" title="Apply configuration changes to selected Tally section">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm2-7H8V5h2v2z"/>
+                </svg>
+                Apply Settings
+              </button>
+            </div>
           </div>
 
           <div class="panel" id="grid-panel">
@@ -137,6 +166,10 @@
               <div class="form-group">
                 <label class="form-label">Columns</label>
                 <input type="number" id="gridColumnsNum" min="1" max="12" value="3" class="form-input">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Rows (0 = show all)</label>
+                <input type="number" id="gridRowsNum" min="0" max="100" value="0" class="form-input">
               </div>
               <div class="form-group">
                 <label class="form-label">Gap (px)</label>

@@ -1,0 +1,19 @@
+{
+  "claude": {
+    "enabled": false,
+    "model": "claudecode",
+    "api_key_env": "CLAUDE_API_KEY",
+    "api_key": ""
+  },
+  "backup": {
+    "enabled": true,
+    "paths": ["style", "js", "css", "example", "export"],
+    "backup_dir": "export/backups",
+    "auto_git_push": false,
+    "git_commit_msg": "Automated backup"
+  },
+  "sync": {
+    "enabled": false,
+    "method": "git"
+  }
+}

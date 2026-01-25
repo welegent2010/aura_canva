@@ -12,7 +12,8 @@ class AuraCanvasEditor {
       gap: 24,
       minWidth: 300,
       maxWidth: 1200,
-      cardLimit: 0
+      cardLimit: 0,
+      rows: 0
     };
     this.previewWidth = 'desktop';
     this.originalHead = '';
@@ -71,6 +72,7 @@ class AuraCanvasEditor {
     });
 
     document.getElementById('newProjectBtn').addEventListener('click', () => this.newProject());
+    document.getElementById('clearStorageBtn').addEventListener('click', () => this.clearStorage());
     document.getElementById('importHtmlBtn').addEventListener('click', () => this.importHtml());
     document.getElementById('exportBtn').addEventListener('click', () => this.exportHtml());
     document.getElementById('exportProjectBtn').addEventListener('click', () => this.exportProject());
@@ -79,6 +81,7 @@ class AuraCanvasEditor {
     document.getElementById('clearCacheBtn').addEventListener('click', () => this.clearCache());
     document.getElementById('loadStyleBtn').addEventListener('click', () => this.loadLocalStyle());
     document.getElementById('addTallyBtn').addEventListener('click', () => this.addTallySection());
+    document.getElementById('applyTallySettingsBtn').addEventListener('click', () => this.applyTallySettings());
     document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
 
@@ -90,7 +93,7 @@ class AuraCanvasEditor {
   }
 
   bindGridControls() {
-    const controls = ['gridColumnsNum', 'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum', 'gridCardLimitNum'];
+    const controls = ['gridColumnsNum', 'gridRowsNum', 'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum', 'gridCardLimitNum'];
     controls.forEach(id => {
       const input = document.getElementById(id);
       if (input) {
@@ -174,7 +177,14 @@ class AuraCanvasEditor {
     this.gridConfig.gap = parseInt(document.getElementById('gridGapNum').value);
     this.gridConfig.minWidth = parseInt(document.getElementById('gridMinWidthNum').value);
     this.gridConfig.maxWidth = parseInt(document.getElementById('gridMaxWidthNum').value);
-    this.gridConfig.cardLimit = parseInt(document.getElementById('gridCardLimitNum').value) || 0;
+    const rowsVal = parseInt(document.getElementById('gridRowsNum')?.value || 0) || 0;
+    this.gridConfig.rows = rowsVal;
+    const explicitCardLimit = parseInt(document.getElementById('gridCardLimitNum').value) || 0;
+    if (rowsVal > 0) {
+      this.gridConfig.cardLimit = rowsVal * this.gridConfig.columns;
+    } else {
+      this.gridConfig.cardLimit = explicitCardLimit || 0;
+    }
 
     const gridSection = this.sections.find(s => s.gridEnabled);
     if (gridSection) {
@@ -252,6 +262,16 @@ class AuraCanvasEditor {
       this.renderSections();
       this.renderPreview();
       this.showToast('New project created', 'success');
+    }
+  }
+
+  clearStorage() {
+    if (confirm('Clear all saved data and reload? This cannot be undone.')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      indexedDB.deleteDatabase('SheetCache');
+      this.showToast('Storage cleared. Reloading...', 'success');
+      setTimeout(() => location.reload(), 1000);
     }
   }
 
@@ -455,6 +475,23 @@ class AuraCanvasEditor {
       document.getElementById('gridMaxWidthNum').value = this.selectedSection.gridMaxWidth;
       document.getElementById('gridCardLimitNum').value = this.selectedSection.gridCardLimit ?? 0;
       this.updateGridConfigFromControls();
+    }
+    // If selected is a Tally section, populate Tally panel inputs for editing config
+    if (this.selectedSection && this.selectedSection.type === 'tally') {
+      const cfg = this.selectedSection.config || {};
+      
+      // Only populate the config fields (width and padding)
+      // Don't change URL/embedCode fields - user might want to add another Tally
+      const widthInput = document.getElementById('tallyWidth');
+      if (widthInput) widthInput.value = cfg.width || 1200;
+      const top = document.getElementById('tallyPaddingTop');
+      const bottom = document.getElementById('tallyPaddingBottom');
+      const left = document.getElementById('tallyPaddingLeft');
+      const right = document.getElementById('tallyPaddingRight');
+      if (top) top.value = cfg.padding?.top ?? 60;
+      if (bottom) bottom.value = cfg.padding?.bottom ?? 60;
+      if (left) left.value = cfg.padding?.left ?? 20;
+      if (right) right.value = cfg.padding?.right ?? 20;
     }
     this.renderSections();
     this.showToast('Section selected: ' + this.selectedSection.name, 'success');
@@ -1406,7 +1443,12 @@ class AuraCanvasEditor {
       });
     `;
     html += '</script>';
-
+    
+    // Add Tally SDK script if any Tally sections exist
+    if (this.sections.some(s => s.type === 'tally')) {
+      html += '<script src="https://tally.so/widgets/embed.js"></script>';
+    }
+    
     html += '</head><body>';
 
     console.log('=== Rendering Preview Sections ===');
@@ -1418,48 +1460,116 @@ class AuraCanvasEditor {
         console.log('Rendering section:', section.name, 'type:', section.type);
         
         if (section.type === 'tally') {
-          console.log('Rendering Tally section with URL:', section.url);
+          console.log('=== Rendering Tally Section ===');
+          console.log('Section name:', section.name);
+          console.log('Section URL:', section.url);
+          console.log('Section embedHtml:', section.embedHtml ? 'YES (length: ' + section.embedHtml.length + ')' : 'NO');
+          console.log('Full section data:', section);
+          
           const config = section.config || {};
           const width = config.width || 1200;
           const padding = config.padding || { top: 60, bottom: 60, left: 20, right: 20 };
           
-          const embedUrl = section.url;
-          const formId = embedUrl.match(/\/embed\/([a-zA-Z0-9]+)/)?.[1] || '';
-          
-          html += `<div class="tally-section" style="
-            max-width: ${width}px;
-            margin: 0 auto;
-            padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
-            position: relative;
-            border: 2px dashed #10b981;
-            background: rgba(16, 185, 129, 0.02);
-            border-radius: 4px;
-          ">`;
-          html += `<div class="section-label" style="
-            position: absolute;
-            top: -10px;
-            left: 12px;
-            background: #10b981;
-            color: white;
-            padding: 2px 8px;
-            font-size: 12px;
-            border-radius: 2px;
-            font-weight: 500;
-            z-index: 10;
-          ">${section.name}</div>`;
-          html += `<iframe 
-            src="${embedUrl}" 
-            data-tally-embed="${formId}"
-            data-tally-width="100%"
-            data-tally-auto-height="true"
-            title="${section.name}" 
-            style="width: 100%; height: 600px; border: none; background: transparent;"
-            frameborder="0"
-            marginheight="0"
-            marginwidth="0"
-            loading="lazy"
-          ></iframe>`;
-          html += `</div>`;
+          // support either embed HTML (section.embedHtml) or direct embed url (section.url)
+          if (section.embedHtml) {
+            console.log('=== Rendering embed HTML ===');
+            // Ensure the embed HTML includes Tally SDK attributes if it's an iframe
+            let embedContent = section.embedHtml;
+            if (embedContent.includes('<iframe') && !embedContent.includes('data-tally')) {
+              // If it's an iframe but not marked as Tally embed, add data-tally attribute
+              embedContent = embedContent.replace('<iframe', '<iframe data-tally-embed="true"');
+            }
+            
+            html += `<div class="tally-section" style="
+              max-width: ${width}px;
+              margin: 0 auto;
+              padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
+              position: relative;
+              border: 2px dashed #10b981;
+              background: rgba(16, 185, 129, 0.02);
+              border-radius: 4px;
+            ">`;
+            html += `<div class="section-label" style="
+              position: absolute;
+              top: -10px;
+              left: 12px;
+              background: #10b981;
+              color: white;
+              padding: 2px 8px;
+              font-size: 12px;
+              border-radius: 2px;
+              font-weight: 500;
+              z-index: 10;
+            ">${section.name}</div>`;
+            html += embedContent;
+            html += `</div>`;
+          } else {
+            const embedUrl = section.url || '';
+            console.log('Using iframe mode with URL:', embedUrl);
+            
+            if (!embedUrl) {
+              console.error('Tally section has no URL or embedHtml!');
+              html += `<div class="tally-section" style="
+                max-width: ${width}px;
+                margin: 0 auto;
+                padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
+                position: relative;
+                border: 2px dashed #ef4444;
+                background: rgba(239, 68, 68, 0.02);
+                border-radius: 4px;
+              ">`;
+              html += `<div class="section-label" style="
+                position: absolute;
+                top: -10px;
+                left: 12px;
+                background: #ef4444;
+                color: white;
+                padding: 2px 8px;
+                font-size: 12px;
+                border-radius: 2px;
+                font-weight: 500;
+              ">${section.name} - ERROR</div>`;
+              html += `<p style="padding: 20px; color: #ef4444;">No Tally URL or embed code provided. Please edit this section and add a Tally link or embed code.</p>`;
+              html += `</div>`;
+              return;
+            }
+            
+            const formId = embedUrl.match(/\/embed\/([a-zA-Z0-9]+)/)?.[1] || '';
+
+            html += `<div class="tally-section" style="
+              max-width: ${width}px;
+              margin: 0 auto;
+              padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
+              position: relative;
+              border: 2px dashed #10b981;
+              background: rgba(16, 185, 129, 0.02);
+              border-radius: 4px;
+            ">`;
+            html += `<div class="section-label" style="
+              position: absolute;
+              top: -10px;
+              left: 12px;
+              background: #10b981;
+              color: white;
+              padding: 2px 8px;
+              font-size: 12px;
+              border-radius: 2px;
+              font-weight: 500;
+            ">${section.name}</div>`;
+            html += `<iframe 
+              src="${embedUrl}" 
+              data-tally-embed="${formId}"
+              data-tally-width="100%"
+              data-tally-auto-height="true"
+              title="${section.name}" 
+              style="width: 100%; height: 600px; border: none; background: transparent;"
+              frameborder="0"
+              marginheight="0"
+              marginwidth="0"
+              loading="lazy"
+            ></iframe>`;
+            html += `</div>`;
+          }
         } else if (section.gridEnabled) {
           const sectionGridColumns = section.gridColumns || this.gridConfig.columns || 4;
           const sectionGridGap = section.gridGap || this.gridConfig.gap || 24;
@@ -1579,7 +1689,8 @@ class AuraCanvasEditor {
     console.log('Creating preview iframe with blob URL');
     const blob = new Blob([html], { type: 'text/html' });
     const blobUrl = URL.createObjectURL(blob);
-    container.innerHTML = `<iframe class="preview-iframe" src="${blobUrl}" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads allow-modals allow-popups-to-escape-sandbox"></iframe>`;
+    // Add allow-same-origin to permit loading Tally SDK and other external resources
+    container.innerHTML = `<iframe class="preview-iframe" src="${blobUrl}" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads allow-modals allow-popups-to-escape-sandbox allow-pointer-lock"></iframe>`;
     const iframe = container.querySelector('iframe');
     console.log('Preview iframe created with blob URL:', blobUrl);
   }
@@ -1964,34 +2075,41 @@ class AuraCanvasEditor {
 <body>
 `;
 
+    // Add Tally SDK if needed
+    if (this.sections.some(s => s.type === 'tally')) {
+      html += '<script src="https://tally.so/widgets/embed.js"><\/script>';
+    }
+
     this.sections.forEach(section => {
       if (section.visible) {
         if (section.type === 'tally') {
           const config = section.config || {};
           const width = config.width || 1200;
           const padding = config.padding || { top: 60, bottom: 60, left: 20, right: 20 };
-          
-          const embedUrl = section.url;
-          const formId = embedUrl.match(/\/embed\/([a-zA-Z0-9]+)/)?.[1] || '';
-          
           html += `<div class="tally-section" style="
             max-width: ${width}px;
             margin: 0 auto;
             padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
           ">`;
           html += `<div class="section-label">${section.name}</div>`;
-          html += `<iframe 
-            src="${embedUrl}" 
-            data-tally-embed="${formId}"
-            data-tally-width="100%"
-            data-tally-auto-height="true"
-            title="${section.name}" 
-            style="width: 100%; height: 600px; border: none; background: transparent;"
-            frameborder="0"
-            marginheight="0"
-            marginwidth="0"
-            loading="lazy"
-          ></iframe>`;
+          if (section.embedHtml) {
+            html += section.embedHtml;
+          } else {
+            const embedUrl = section.url || '';
+            const formId = embedUrl.match(/\/embed\/([a-zA-Z0-9]+)/)?.[1] || '';
+            html += `<iframe 
+              src="${embedUrl}" 
+              data-tally-embed="${formId}"
+              data-tally-width="100%"
+              data-tally-auto-height="true"
+              title="${section.name}" 
+              style="width: 100%; height: 600px; border: none; background: transparent;"
+              frameborder="0"
+              marginheight="0"
+              marginwidth="0"
+              loading="lazy"
+            ></iframe>`;
+          }
           html += `</div>`;
         } else if (section.gridEnabled) {
           const sectionGridColumns = section.gridColumns || this.gridConfig.columns || 4;
@@ -2076,6 +2194,29 @@ class AuraCanvasEditor {
         this.gridConfig = data.gridConfig || this.gridConfig;
         this.originalHead = data.originalHead || '';
         this.originalHtmlClass = data.originalHtmlClass || '';
+        
+        // Remove duplicate Tally sections (keep only the last one of each type)
+        const tallyCount = this.sections.filter(s => s.type === 'tally').length;
+        if (tallyCount > 1) {
+          console.log('Found', tallyCount, 'Tally sections, removing duplicates...');
+          const lastTallyIndex = this.sections.length - 1 - [...this.sections].reverse().findIndex(s => s.type === 'tally');
+          this.sections = this.sections.filter((s, idx) => s.type !== 'tally' || idx === lastTallyIndex);
+          console.log('Kept only the last Tally section');
+        }
+        
+        // Sanitize Tally URLs - fix any corrupted ones
+        this.sections = this.sections.map(s => {
+          if (s.type === 'tally' && s.url) {
+            // Check if URL has corrupted parameters (doubled, mangled, etc.)
+            if (s.url.includes('igenLeft') || s.url.includes('icHeight') || s.url.includes('2a1')) {
+              console.warn('Detected corrupted Tally URL:', s.url);
+              s.url = null; // Clear the corrupted URL, user will need to re-enter it
+              console.log('Cleared corrupted URL');
+            }
+          }
+          return s;
+        });
+        
         this.renderSections();
         this.renderStyleSets();
       } catch (error) {
@@ -2345,31 +2486,72 @@ class AuraCanvasEditor {
   }
 
   addTallySection() {
-    const url = document.getElementById('tallyUrl').value.trim();
+    const directUrl = document.getElementById('tallyDirectUrl').value.trim();
+    const embedCode = document.getElementById('tallyEmbedCode').value.trim();
     const width = parseInt(document.getElementById('tallyWidth').value) || 1200;
     const paddingTop = parseInt(document.getElementById('tallyPaddingTop').value) || 60;
     const paddingBottom = parseInt(document.getElementById('tallyPaddingBottom').value) || 60;
     const paddingLeft = parseInt(document.getElementById('tallyPaddingLeft').value) || 20;
     const paddingRight = parseInt(document.getElementById('tallyPaddingRight').value) || 20;
 
-    console.log('=== Adding Tally Section ===');
-    console.log('Input URL:', url);
-    console.log('URL type:', typeof url);
+    console.log('=== Adding NEW Tally Section ===');
+    console.log('Direct URL input:', directUrl);
+    console.log('Embed code input length:', embedCode.length);
 
-    if (!url) {
-      this.showToast('Please enter a Tally shared link', 'error');
+    // User must provide one of the two methods
+    if (!directUrl && !embedCode) {
+      this.showToast('Please enter a Tally link OR embed code', 'error');
       return;
     }
 
-    const embedUrl = this.normalizeTallyUrl(url);
-    console.log('Final embed URL:', embedUrl);
-    console.log('Config:', { width, padding: { top: paddingTop, bottom: paddingBottom, left: paddingLeft, right: paddingRight } });
+    // Prioritize embed code if both are provided
+    let embedUrl = null;
+    let embedHtml = null;
+    
+    if (embedCode) {
+      console.log('=== Using embed code (Method 2) ===');
+      // Extract just the iframe tag, remove the script
+      const iframeMatch = embedCode.match(/<iframe[^>]*data-tally-src[^>]*><\/iframe>/);
+      if (iframeMatch) {
+        embedHtml = iframeMatch[0];
+        console.log('Extracted iframe from embed code:', embedHtml.substring(0, 100) + '...');
+      } else {
+        // Try alternate pattern: match iframe with optional closing tag  
+        const altMatch = embedCode.match(/<iframe[^>]*>/);
+        if (altMatch) {
+          // Extract the iframe opening tag only
+          embedHtml = altMatch[0];
+          // If it doesn't have a closing tag, add one
+          if (!embedHtml.endsWith('/>')) {
+            embedHtml += '</iframe>';
+          }
+          console.log('Extracted iframe (alt method):', embedHtml.substring(0, 100) + '...');
+        } else {
+          // If no match, use the whole thing (might contain <script> tags too)
+          embedHtml = embedCode;
+          console.log('Using entire embed code as-is');
+        }
+      }
+    } else if (directUrl) {
+      console.log('=== Using direct URL (Method 1) ===');
+      // Validate that it's a tally URL
+      if (!directUrl.includes('tally.so')) {
+        this.showToast('Invalid Tally URL. Must contain "tally.so"', 'error');
+        return;
+      }
+      embedUrl = this.normalizeTallyUrl(directUrl);
+    }
 
-    const section = {
+    console.log('Final embed URL:', embedUrl);
+    console.log('embedHtml content:', embedHtml ? `YES (${embedHtml.length} chars)` : 'NO');
+
+    // Always add a new section (don't update existing)
+    const sectionData = {
       id: Date.now(),
       name: 'Tally Form',
       type: 'tally',
       url: embedUrl,
+      embedHtml: embedHtml,
       visible: true,
       config: {
         width: Math.min(Math.max(width, 320), 1440),
@@ -2381,35 +2563,100 @@ class AuraCanvasEditor {
         }
       }
     };
+    console.log('Adding new Tally section:', sectionData);
+    this.sections.push(sectionData);
+    this.showToast('Tally form section added', 'success');
 
-    this.sections.push(section);
     console.log('Sections count after adding Tally:', this.sections.length);
-    console.log('All sections:', JSON.stringify(this.sections, null, 2));
+    console.log('All sections:', this.sections.map(s => ({ id: s.id, name: s.name, type: s.type, url: s.url, hasEmbedHtml: !!s.embedHtml })));
 
+    this.saveData();
     this.switchTab('sections');
     this.renderSections();
     this.renderPreview();
-    this.showToast('Tally form section added', 'success');
+  }
+
+  applyTallySettings() {
+    // Only apply settings to an already selected Tally section
+    if (!this.selectedSection || this.selectedSection.type !== 'tally') {
+      this.showToast('Please select a Tally section first', 'error');
+      return;
+    }
+
+    const width = parseInt(document.getElementById('tallyWidth').value) || 1200;
+    const paddingTop = parseInt(document.getElementById('tallyPaddingTop').value) || 60;
+    const paddingBottom = parseInt(document.getElementById('tallyPaddingBottom').value) || 60;
+    const paddingLeft = parseInt(document.getElementById('tallyPaddingLeft').value) || 20;
+    const paddingRight = parseInt(document.getElementById('tallyPaddingRight').value) || 20;
+
+    console.log('=== Applying Tally Settings ===');
+    console.log('Selected section ID:', this.selectedSection.id);
+    console.log('Updating config - width:', width, 'padding:', { top: paddingTop, bottom: paddingBottom, left: paddingLeft, right: paddingRight });
+
+    // Update only the configuration, not the URL or embedHtml
+    this.selectedSection.config = {
+      width: Math.min(Math.max(width, 320), 1440),
+      padding: {
+        top: paddingTop,
+        bottom: paddingBottom,
+        left: paddingLeft,
+        right: paddingRight
+      }
+    };
+
+    console.log('Updated section config:', this.selectedSection.config);
+    this.showToast('Tally settings applied', 'success');
+
+    this.saveData();
+    this.renderPreview();
   }
 
   normalizeTallyUrl(url) {
     if (!url) return url;
-
-    if (url.includes('tally.so/embed/')) {
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+    
+    console.log('normalizeTallyUrl input:', url);
+    
+    // If URL already has all parameters, return as-is
+    if (url.includes('alignLeft=1') && url.includes('hideTitle=1') && url.includes('transparentBackground=1')) {
+      console.log('URL already has all parameters, returning as-is');
+      return url;
     }
 
-    const rMatch = url.match(/tally\.so\/r\/([a-zA-Z0-9]+)/);
-    if (rMatch && rMatch[1]) {
-      return `https://tally.so/embed/${rMatch[1]}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+    // Extract form ID from different URL formats
+    let formId = null;
+    
+    // Format: https://tally.so/embed/7RKXAa?...
+    const embedMatch = url.match(/tally\.so\/embed\/([a-zA-Z0-9]+)/);
+    if (embedMatch && embedMatch[1]) {
+      formId = embedMatch[1];
+      console.log('Found form ID from /embed/ URL:', formId);
     }
-
-    const directMatch = url.match(/tally\.so\/([a-zA-Z0-9]+)/);
-    if (directMatch && directMatch[1]) {
-      return `https://tally.so/embed/${directMatch[1]}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+    
+    // Format: https://tally.so/r/7RKXAa
+    if (!formId) {
+      const rMatch = url.match(/tally\.so\/r\/([a-zA-Z0-9]+)/);
+      if (rMatch && rMatch[1]) {
+        formId = rMatch[1];
+        console.log('Found form ID from /r/ URL:', formId);
+      }
     }
-
+    
+    // Format: https://tally.so/7RKXAa
+    if (!formId) {
+      const directMatch = url.match(/tally\.so\/([a-zA-Z0-9]+)(?:[/?]|$)/);
+      if (directMatch && directMatch[1]) {
+        formId = directMatch[1];
+        console.log('Found form ID from direct URL:', formId);
+      }
+    }
+    
+    if (formId) {
+      const result = `https://tally.so/embed/${formId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+      console.log('Normalized URL:', result);
+      return result;
+    }
+    
+    console.log('Could not extract form ID, returning original URL');
     return url;
   }
 
@@ -2465,12 +2712,25 @@ class AuraCanvasEditor {
   }
 
   async loadStyleJSONFiles() {
-    const styleFiles = [
+    let styleFiles = [
       'style/card.json',
       'style/card_style_testimonal.json',
       'style/minimal-card.json',
       'style/testimonal.json'
     ];
+
+    // Try server-provided list of style files at /styles (enabled by start-server.py)
+    try {
+      const resp = await fetch('/styles');
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && Array.isArray(data.files) && data.files.length > 0) {
+          styleFiles = data.files.map(f => `style/${f}`);
+        }
+      }
+    } catch (e) {
+      console.log('Failed to fetch /styles, falling back to built-in list:', e);
+    }
 
     for (const filePath of styleFiles) {
       try {
@@ -2577,3 +2837,165 @@ class AuraCanvasEditor {
 }
 
 const editor = new AuraCanvasEditor();
+// ============================================
+// 诊断工具 - 在控制台中使用
+// ============================================
+
+window.tallyDiagnostics = {
+  /**
+   * 显示所有保存的数据
+   */
+  showAllData() {
+    const saved = localStorage.getItem('auraCanvasData');
+    if (!saved) {
+      console.log('No saved data found in localStorage');
+      return null;
+    }
+    const data = JSON.parse(saved);
+    console.log('=== All Saved Data ===');
+    console.log(data);
+    return data;
+  },
+
+  /**
+   * 显示所有 Tally section
+   */
+  showTallyData() {
+    const data = this.showAllData();
+    if (!data || !data.sections) return null;
+    const tallySections = data.sections.filter(s => s.type === 'tally');
+    console.log('=== Tally Sections ===');
+    console.log(`Total Tally sections: ${tallySections.length}`);
+    tallySections.forEach((s, i) => {
+      console.log(`[${i}]`, {
+        id: s.id,
+        name: s.name,
+        hasUrl: !!s.url,
+        url: s.url ? s.url.substring(0, 50) + '...' : null,
+        hasEmbedHtml: !!s.embedHtml,
+        embedHtmlLength: s.embedHtml ? s.embedHtml.length : 0,
+        config: s.config
+      });
+    });
+    return tallySections;
+  },
+
+  /**
+   * 检查是否有损坏的 URL
+   */
+  checkCorruptedUrls() {
+    const data = this.showAllData();
+    if (!data || !data.sections) return [];
+    
+    const corrupted = [];
+    data.sections.filter(s => s.type === 'tally' && s.url).forEach(s => {
+      if (s.url.includes('igenLeft') || s.url.includes('icHeight') || s.url.includes('2a1')) {
+        corrupted.push({
+          id: s.id,
+          url: s.url
+        });
+      }
+    });
+    
+    if (corrupted.length > 0) {
+      console.warn('❌ Found corrupted URLs:', corrupted);
+    } else {
+      console.log('✅ No corrupted URLs found');
+    }
+    return corrupted;
+  },
+
+  /**
+   * 清空所有 Tally section
+   */
+  clearAllTally() {
+    const data = this.showAllData();
+    if (!data) {
+      console.log('No data to clear');
+      return;
+    }
+    data.sections = data.sections.filter(s => s.type !== 'tally');
+    localStorage.setItem('auraCanvasData', JSON.stringify(data));
+    console.log('✅ All Tally sections cleared');
+    location.reload();
+  },
+
+  /**
+   * 清空所有存储
+   */
+  clearAll() {
+    if (confirm('Clear ALL data? This cannot be undone.')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      indexedDB.deleteDatabase('SheetCache');
+      console.log('✅ All storage cleared');
+      location.reload();
+    }
+  },
+
+  /**
+   * 测试 URL 规范化
+   */
+  testUrlNormalization(url) {
+    console.log('=== Testing URL Normalization ===');
+    console.log('Input:', url);
+    const normalized = editor.normalizeTallyUrl(url);
+    console.log('Output:', normalized);
+    return normalized;
+  },
+
+  /**
+   * 获取统计信息
+   */
+  getStats() {
+    const data = this.showAllData();
+    if (!data) {
+      console.log('No data found');
+      return null;
+    }
+    
+    const stats = {
+      totalSections: data.sections.length,
+      tallyCount: data.sections.filter(s => s.type === 'tally').length,
+      gridCount: data.sections.filter(s => s.gridEnabled).length,
+      htmlCount: data.sections.filter(s => s.type !== 'tally' && !s.gridEnabled).length,
+      totalStyles: data.styleSets.length,
+      currentStyle: data.currentStyle?.name || 'None',
+      gridConfig: data.gridConfig,
+      hasSheetData: editor.sheetData.length > 0,
+      sheetDataCount: editor.sheetData.length
+    };
+    
+    console.log('=== Statistics ===');
+    console.table(stats);
+    return stats;
+  },
+
+  /**
+   * 帮助信息
+   */
+  help() {
+    console.log(`
+    Tally 诊断工具 - 可用命令：
+    
+    📊 数据查询：
+    - tallyDiagnostics.showAllData()      查看所有保存数据
+    - tallyDiagnostics.showTallyData()    查看所有 Tally section
+    - tallyDiagnostics.checkCorruptedUrls() 检查损坏的 URL
+    - tallyDiagnostics.getStats()         获取统计信息
+    
+    🔧 维护操作：
+    - tallyDiagnostics.clearAllTally()    清空所有 Tally section
+    - tallyDiagnostics.clearAll()         清空所有数据（需确认）
+    
+    🧪 测试：
+    - tallyDiagnostics.testUrlNormalization(url) 测试 URL 处理
+    
+    💡 示例：
+    tallyDiagnostics.testUrlNormalization('https://tally.so/embed/7RKXAa')
+    `);
+  }
+};
+
+// 自动打印帮助信息
+console.log('💡 Tally 诊断工具已加载。输入 tallyDiagnostics.help() 查看可用命令。');
