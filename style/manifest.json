@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Card Standard",
+    "file": "style/card.json"
+    "file": "style/minimal-card.json"
+  },
+  {
+    "name": "Minimal Testimonial Card",
+    "file": "style/testimonal.json"
+  }
+]

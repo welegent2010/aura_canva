@@ -5,15 +5,20 @@ class AuraCanvasEditor {
     this.sections = [];
     this.sheetData = [];
     this.selectedSection = null;
+    this.selectedCard = null; // Track selected card for style preview
     this.styleSets = [];
     this.currentStyle = null;
     this.gridConfig = {
       columns: 3,
+      columnsDesktop: 4,
+      columnsTablet: 2,
+      columnsPhone: 1,
       gap: 24,
       minWidth: 300,
-      maxWidth: 1200,
+      maxWidth: 1440,
+      sectionPadding: 40,
       cardLimit: 0,
-      rows: 0
+      showPlaceholders: true
     };
     this.previewWidth = 'desktop';
     this.originalHead = '';
@@ -27,6 +32,7 @@ class AuraCanvasEditor {
       await this.connector.init();
       this.bindEvents();
       this.initSidebarResizer();
+      this.setupCardClickListener(); // Listen for card clicks from iframe
       this.loadSavedData();
       await this.loadLocalStyles();
       this.renderStyleSelect();
@@ -40,6 +46,7 @@ class AuraCanvasEditor {
   initSidebarResizer() {
     const resizer = document.getElementById('sidebarResizer');
     const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
     let isResizing = false;
 
     resizer.addEventListener('mousedown', (e) => {
@@ -47,66 +54,195 @@ class AuraCanvasEditor {
       resizer.classList.add('resizing');
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isResizing) return;
-
-      const newWidth = e.clientX;
-      if (newWidth >= 280 && newWidth <= 600) {
-        sidebar.style.width = newWidth + 'px';
-      }
-    });
-
-    document.addEventListener('mouseup', () => {
-      isResizing = false;
-      resizer.classList.remove('resizing');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      
+      const startX = e.clientX;
+      const startWidth = sidebar.offsetWidth;
+      
+      const onMouseMove = (moveEvent) => {
+        if (!isResizing) return;
+        
+        const deltaX = moveEvent.clientX - startX;
+        const newWidth = startWidth + deltaX;
+        
+        if (newWidth >= 280 && newWidth <= 600) {
+          sidebar.style.width = newWidth + 'px';
+        }
+      };
+      
+      const onMouseUp = () => {
+        isResizing = false;
+        resizer.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+      
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
     });
   }
 
+  setupCardClickListener() {
+    // Listen for messages from preview iframe when cards are clicked
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'cardClick') {
+        console.log('Card clicked:', event.data);
+        this.selectedCard = {
+          index: event.data.index,
+          data: event.data.data
+        };
+        this.showCardStylePreview();
+        this.switchTab('styles'); // Auto switch to Style Sets tab
+      }
+    });
+  }
+
+  showCardStylePreview() {
+    if (!this.currentStyle || !this.selectedCard) {
+      document.getElementById('stylePreviewCard').style.display = 'none';
+      return;
+    }
+    
+    const card = this.selectedCard;
+    const style = this.currentStyle;
+    
+    // Show preview card
+    document.getElementById('stylePreviewCard').style.display = 'block';
+    
+    // Update preview info
+    const nameEl = document.getElementById('stylePreviewName');
+    if (nameEl) {
+      const cardName = card.data.name || card.data.title || `Card ${card.index + 1}`;
+      nameEl.textContent = `${style.name} - Selected: ${cardName}`;
+    }
+    
+    // Render actual card preview
+    const imageEl = document.getElementById('stylePreviewImage');
+    if (imageEl) {
+      const cardHtml = this.renderCard(card.data);
+      imageEl.innerHTML = `<div class="card" style="
+        width: 100%;
+        height: 100%;
+        transform: scale(0.95);
+        background: ${style.cardBg || '#fff'};
+        border-radius: ${style.cardRadius || 8}px;
+        padding: ${style.cardPadding || 16}px;
+        overflow: auto;
+      ">${cardHtml}</div>`;
+    }
+    
+    // Update columns info
+    const colsEl = document.getElementById('stylePreviewCols');
+    if (colsEl) {
+      const cols = style.grid?.columns || this.gridConfig.columnsDesktop || 4;
+      colsEl.textContent = `${cols} columns (Desktop)`;
+    }
+    
+    // Update fields info
+    const fieldsEl = document.getElementById('stylePreviewFields');
+    if (fieldsEl) {
+      const fields = Object.keys(card.data);
+      fieldsEl.textContent = fields.join(', ');
+    }
+  }
+
   bindEvents() {
+    // Remove any existing listeners first to prevent duplicates
+    const removeAllListeners = (selector) => {
+      const el = document.getElementById(selector);
+      if (el) {
+        const newEl = el.cloneNode(true);
+        el.parentNode.replaceChild(newEl, el);
+        return newEl;
+      }
+      return null;
+    };
+
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
     });
 
-    document.getElementById('newProjectBtn').addEventListener('click', () => this.newProject());
-    document.getElementById('clearStorageBtn').addEventListener('click', () => this.clearStorage());
-    document.getElementById('importHtmlBtn').addEventListener('click', () => this.importHtml());
-    document.getElementById('exportBtn').addEventListener('click', () => this.exportHtml());
-    document.getElementById('exportProjectBtn').addEventListener('click', () => this.exportProject());
-    document.getElementById('addSectionBtn').addEventListener('click', () => this.addSection());
-    document.getElementById('loadDataBtn').addEventListener('click', () => this.loadSheetData());
-    document.getElementById('clearCacheBtn').addEventListener('click', () => this.clearCache());
-    document.getElementById('loadStyleBtn').addEventListener('click', () => this.loadLocalStyle());
-    document.getElementById('addTallyBtn').addEventListener('click', () => this.addTallySection());
-    document.getElementById('applyTallySettingsBtn').addEventListener('click', () => this.applyTallySettings());
-    document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
-    document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
+    const newProjectBtn = removeAllListeners('newProjectBtn');
+    const clearStorageBtn = removeAllListeners('clearStorageBtn');
+    const importHtmlBtn = removeAllListeners('importHtmlBtn');
+    const exportBtn = removeAllListeners('exportBtn');
+    const exportProjectBtn = removeAllListeners('exportProjectBtn');
+    const addSectionBtn = removeAllListeners('addSectionBtn');
+    const loadDataBtn = removeAllListeners('loadDataBtn');
+    const clearCacheBtn = removeAllListeners('clearCacheBtn');
+    const loadStyleBtn = removeAllListeners('loadStyleBtn');
+    const addTallyBtn = removeAllListeners('addTallyBtn');
+    const applyTallySettingsBtn = removeAllListeners('applyTallySettingsBtn');
+    const refreshPreviewBtn = removeAllListeners('refreshPreviewBtn');
+    const fileInput = removeAllListeners('fileInput');
+    const previewDesktopBtn = removeAllListeners('previewDesktopBtn');
+    const previewTabletBtn = removeAllListeners('previewTabletBtn');
+    const previewMobileBtn = removeAllListeners('previewMobileBtn');
 
-    document.getElementById('previewDesktopBtn').addEventListener('click', () => this.setPreviewWidth('desktop'));
-    document.getElementById('previewTabletBtn').addEventListener('click', () => this.setPreviewWidth('tablet'));
-    document.getElementById('previewMobileBtn').addEventListener('click', () => this.setPreviewWidth('mobile'));
+    if (newProjectBtn) newProjectBtn.addEventListener('click', () => this.newProject());
+    if (clearStorageBtn) clearStorageBtn.addEventListener('click', () => this.clearStorage());
+    if (importHtmlBtn) importHtmlBtn.addEventListener('click', () => this.importHtml());
+    if (exportBtn) exportBtn.addEventListener('click', () => this.exportHtml());
+    if (exportProjectBtn) exportProjectBtn.addEventListener('click', () => this.exportProject());
+    if (addSectionBtn) addSectionBtn.addEventListener('click', () => this.addSection());
+    if (loadDataBtn) loadDataBtn.addEventListener('click', () => this.loadSheetData());
+    if (clearCacheBtn) clearCacheBtn.addEventListener('click', () => this.clearCache());
+    if (loadStyleBtn) loadStyleBtn.addEventListener('click', () => this.loadLocalStyle());
+    if (addTallyBtn) addTallyBtn.addEventListener('click', () => this.addTallySection());
+    if (applyTallySettingsBtn) applyTallySettingsBtn.addEventListener('click', () => this.applyTallySettings());
+    if (refreshPreviewBtn) refreshPreviewBtn.addEventListener('click', () => this.refreshPreview());
+    if (fileInput) fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+    if (previewDesktopBtn) previewDesktopBtn.addEventListener('click', () => this.setPreviewWidth('desktop'));
+    if (previewTabletBtn) previewTabletBtn.addEventListener('click', () => this.setPreviewWidth('tablet'));
+    if (previewMobileBtn) previewMobileBtn.addEventListener('click', () => this.setPreviewWidth('mobile'));
 
     this.bindGridControls();
   }
 
   bindGridControls() {
-    const controls = ['gridColumnsNum', 'gridRowsNum', 'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum', 'gridCardLimitNum'];
+    const controls = [
+      'gridColumnsDesktop', 'gridColumnsTablet', 'gridColumnsPhone',
+      'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum', 'gridCardLimitNum',
+      'gridSectionPadding', 'showPlaceholders'
+    ];
     controls.forEach(id => {
       const input = document.getElementById(id);
       if (input) {
         input.addEventListener('input', () => {
           this.updateGridConfigFromControls();
+          this.updateGridPreviewInfo();
+        });
+        input.addEventListener('change', () => {
+          this.updateGridConfigFromControls();
+          this.updateGridPreviewInfo();
         });
       }
     });
 
     const applyGridBtn = document.getElementById('applyGridBtn');
     if (applyGridBtn) {
-      applyGridBtn.addEventListener('click', () => this.applyGridConfig());
+      // Clone to remove old listeners
+      const newApplyGridBtn = applyGridBtn.cloneNode(true);
+      applyGridBtn.parentNode.replaceChild(newApplyGridBtn, applyGridBtn);
+      newApplyGridBtn.addEventListener('click', () => this.applyGridConfig());
     }
+
+    const applyModifyBtn = document.getElementById('applyModifyBtn');
+    if (applyModifyBtn) {
+      // Clone to remove old listeners
+      const newApplyModifyBtn = applyModifyBtn.cloneNode(true);
+      applyModifyBtn.parentNode.replaceChild(newApplyModifyBtn, applyModifyBtn);
+      newApplyModifyBtn.addEventListener('click', () => this.applyModify());
+    }
+
+    // Style select change to show preview
+    const styleSelect = document.getElementById('styleSelect');
+    if (styleSelect) {
+      styleSelect.addEventListener('change', () => this.showStylePreview());
+    }
+
+    this.updateGridPreviewInfo();
   }
 
   applyGridConfig() {
@@ -127,10 +263,15 @@ class AuraCanvasEditor {
         visible: true,
         gridEnabled: true,
         gridColumns: this.gridConfig.columns,
+        gridColumnsDesktop: this.gridConfig.columnsDesktop,
+        gridColumnsTablet: this.gridConfig.columnsTablet,
+        gridColumnsPhone: this.gridConfig.columnsPhone,
         gridGap: this.gridConfig.gap,
         gridMinWidth: this.gridConfig.minWidth,
         gridMaxWidth: this.gridConfig.maxWidth,
+        gridSectionPadding: this.gridConfig.sectionPadding,
         gridCardLimit: this.gridConfig.cardLimit,
+        showPlaceholders: this.gridConfig.showPlaceholders,
         styleApplied: false,
         styleSetId: null
       };
@@ -139,10 +280,15 @@ class AuraCanvasEditor {
     } else {
       console.log('Updating existing grid section, ID:', existingGridSection.id);
       existingGridSection.gridColumns = this.gridConfig.columns;
+      existingGridSection.gridColumnsDesktop = this.gridConfig.columnsDesktop;
+      existingGridSection.gridColumnsTablet = this.gridConfig.columnsTablet;
+      existingGridSection.gridColumnsPhone = this.gridConfig.columnsPhone;
       existingGridSection.gridGap = this.gridConfig.gap;
       existingGridSection.gridMinWidth = this.gridConfig.minWidth;
       existingGridSection.gridMaxWidth = this.gridConfig.maxWidth;
+      existingGridSection.gridSectionPadding = this.gridConfig.sectionPadding;
       existingGridSection.gridCardLimit = this.gridConfig.cardLimit;
+      existingGridSection.showPlaceholders = this.gridConfig.showPlaceholders;
       console.log('Updated grid section:', existingGridSection);
     }
 
@@ -152,47 +298,210 @@ class AuraCanvasEditor {
 
     this.renderSections();
     this.renderPreview();
+    this.updateGridPreviewInfo();
     this.showToast('Grid configuration applied', 'success');
   }
 
+  applyModify() {
+    // Apply spacing/padding modifications only to the selected grid section
+    if (!this.selectedSection || !this.selectedSection.gridEnabled) {
+      this.showToast('Please select a grid section first', 'error');
+      return;
+    }
+
+    this.updateGridConfigFromControls();
+
+    console.log('=== Applying Modify (Spacing/Padding) ===');
+    console.log('Selected section ID:', this.selectedSection.id);
+    console.log('Updating gap and padding');
+
+    // Update only spacing/padding values
+    this.selectedSection.gridGap = this.gridConfig.gap;
+    this.selectedSection.gridSectionPadding = this.gridConfig.sectionPadding;
+    this.selectedSection.gridMinWidth = this.gridConfig.minWidth;
+    this.selectedSection.gridMaxWidth = this.gridConfig.maxWidth;
+
+    console.log('Updated section:', {
+      gap: this.selectedSection.gridGap,
+      sectionPadding: this.selectedSection.gridSectionPadding,
+      minWidth: this.selectedSection.gridMinWidth,
+      maxWidth: this.selectedSection.gridMaxWidth
+    });
+
+    this.renderPreview();
+    this.saveData();
+    this.showToast('Spacing/padding modified', 'success');
+  }
+
   bindStyleControls() {
-    document.getElementById('cardRadius').addEventListener('input', (e) => {
-      document.getElementById('cardRadiusValue').textContent = e.target.value;
-      this.updatePreviewFromControls();
-    });
-    document.getElementById('cardPadding').addEventListener('input', (e) => {
-      document.getElementById('cardPaddingValue').textContent = e.target.value;
-      this.updatePreviewFromControls();
-    });
+    const cardRadius = document.getElementById('cardRadius');
+    const cardPadding = document.getElementById('cardPadding');
     
-    ['cardBg', 'cardText', 'cardBorder', 'cardAccent', 'cardShadow'].forEach(id => {
-      document.getElementById(id).addEventListener('change', () => {
+    if (cardRadius) {
+      cardRadius.addEventListener('input', (e) => {
+        const radiusValue = document.getElementById('cardRadiusValue');
+        if (radiusValue) radiusValue.textContent = e.target.value;
         this.updatePreviewFromControls();
       });
+    }
+    
+    if (cardPadding) {
+      cardPadding.addEventListener('input', (e) => {
+        const paddingValue = document.getElementById('cardPaddingValue');
+        if (paddingValue) paddingValue.textContent = e.target.value;
+        this.updatePreviewFromControls();
+      });
+    }
+    
+    ['cardBg', 'cardText', 'cardBorder', 'cardAccent', 'cardShadow'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', () => {
+          this.updatePreviewFromControls();
+        });
+      }
     });
   }
 
-  updateGridConfigFromControls() {
-    this.gridConfig.columns = parseInt(document.getElementById('gridColumnsNum').value);
-    this.gridConfig.gap = parseInt(document.getElementById('gridGapNum').value);
-    this.gridConfig.minWidth = parseInt(document.getElementById('gridMinWidthNum').value);
-    this.gridConfig.maxWidth = parseInt(document.getElementById('gridMaxWidthNum').value);
-    const rowsVal = parseInt(document.getElementById('gridRowsNum')?.value || 0) || 0;
-    this.gridConfig.rows = rowsVal;
-    const explicitCardLimit = parseInt(document.getElementById('gridCardLimitNum').value) || 0;
-    if (rowsVal > 0) {
-      this.gridConfig.cardLimit = rowsVal * this.gridConfig.columns;
-    } else {
-      this.gridConfig.cardLimit = explicitCardLimit || 0;
+  updateGridPreviewInfo() {
+    const desktopCols = parseInt(document.getElementById('gridColumnsDesktop')?.value) || 4;
+    const tabletCols = parseInt(document.getElementById('gridColumnsTablet')?.value) || 2;
+    const phoneCols = parseInt(document.getElementById('gridColumnsPhone')?.value) || 1;
+    const cardLimit = parseInt(document.getElementById('gridCardLimitNum')?.value) || 0;
+    
+    const previewText = document.getElementById('gridPreviewText');
+    if (previewText) {
+      previewText.textContent = `Desktop: ${desktopCols} cols, Tablet: ${tabletCols} cols, Phone: ${phoneCols} col${phoneCols > 1 ? 's' : ''}`;
     }
+    
+    const cardsText = document.getElementById('gridCardsText');
+    if (cardsText) {
+      const dataCount = this.sheetData.length;
+      const displayCount = cardLimit > 0 ? Math.min(dataCount, cardLimit) : dataCount;
+      cardsText.textContent = `${displayCount} of ${dataCount} cards ${cardLimit > 0 ? '(limited)' : '(all)'}`;
+    }
+  }
+
+  showStylePreview() {
+    const styleSelect = document.getElementById('styleSelect');
+    const selectedStyleId = styleSelect?.value;
+    
+    if (!selectedStyleId) {
+      document.getElementById('stylePreviewCard').style.display = 'none';
+      return;
+    }
+    
+    const style = this.styleSets.find(s => s.id === selectedStyleId);
+    if (!style) {
+      document.getElementById('stylePreviewCard').style.display = 'none';
+      return;
+    }
+    
+    this.currentStyle = style;
+    
+    // Show preview card
+    document.getElementById('stylePreviewCard').style.display = 'block';
+    
+    // Use first available card data
+    if (this.sheetData.length > 0) {
+      this.selectedCard = {
+        index: 0,
+        data: this.sheetData[0]
+      };
+      
+      // Update preview info with card name
+      const nameEl = document.getElementById('stylePreviewName');
+      if (nameEl) {
+        const cardName = this.sheetData[0].name || this.sheetData[0].title || 'Card 1';
+        nameEl.textContent = `${style.name || 'Unknown Style'} - Selected: ${cardName}`;
+      }
+      
+      // Render actual card preview
+      const imageEl = document.getElementById('stylePreviewImage');
+      if (imageEl) {
+        const cardHtml = this.renderCard(this.sheetData[0]);
+        imageEl.innerHTML = `<div class="card" style="
+          width: 100%;
+          height: 100%;
+          transform: scale(0.95);
+          background: ${style.cardBg || '#fff'};
+          border-radius: ${style.cardRadius || 8}px;
+          padding: ${style.cardPadding || 16}px;
+          overflow: auto;
+        ">${cardHtml}</div>`;
+      }
+    } else {
+      // No data available, show style info and thumbnail or placeholder
+      const nameEl = document.getElementById('stylePreviewName');
+      if (nameEl) {
+        nameEl.textContent = `${style.name || 'Unknown Style'} - ${style.description || ''}`;
+      }
+      
+      // Show thumbnail if available, otherwise show placeholder
+      const imageEl = document.getElementById('stylePreviewImage');
+      if (imageEl) {
+        if (style.thumbnail) {
+          imageEl.innerHTML = `<img src="${style.thumbnail}" style="width: 100%; height: 100%; object-fit: cover;" alt="${style.name}" onerror="this.outerHTML='<div style=\\'width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:14px\\'>No Image</div>'">`;
+        } else {
+          imageEl.innerHTML = `<div style="width:100%;height:100%;background:linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:14px;">No Preview</div>`;
+        }
+      }
+    }
+    
+    // Update columns info
+    const colsEl = document.getElementById('stylePreviewCols');
+    if (colsEl) {
+      const cols = style.grid?.columns || 4;
+      colsEl.textContent = `${cols} columns`;
+    }
+    
+    // Update fields info
+    const fieldsEl = document.getElementById('stylePreviewFields');
+    if (fieldsEl) {
+      const fields = [];
+      if (style.data_binding) {
+        Object.keys(style.data_binding).forEach(key => {
+          fields.push(key);
+        });
+      } else if (this.sheetData.length > 0) {
+        fields.push(...Object.keys(this.sheetData[0]));
+      }
+      fieldsEl.textContent = fields.length > 0 ? fields.join(', ') : 'No fields defined';
+    }
+  }
+
+  updateGridConfigFromControls() {
+    // Get responsive column values
+    const desktopCols = parseInt(document.getElementById('gridColumnsDesktop')?.value) || 4;
+    const tabletCols = parseInt(document.getElementById('gridColumnsTablet')?.value) || 2;
+    const phoneCols = parseInt(document.getElementById('gridColumnsPhone')?.value) || 1;
+    
+    this.gridConfig.columns = desktopCols; // Default to desktop
+    this.gridConfig.columnsDesktop = desktopCols;
+    this.gridConfig.columnsTablet = tabletCols;
+    this.gridConfig.columnsPhone = phoneCols;
+    
+    this.gridConfig.gap = parseInt(document.getElementById('gridGapNum')?.value) || 24;
+    this.gridConfig.minWidth = parseInt(document.getElementById('gridMinWidthNum')?.value) || 280;
+    this.gridConfig.maxWidth = parseInt(document.getElementById('gridMaxWidthNum')?.value) || 1440;
+    this.gridConfig.sectionPadding = parseInt(document.getElementById('gridSectionPadding')?.value) || 40;
+    this.gridConfig.showPlaceholders = document.getElementById('showPlaceholders')?.checked !== false;
+    
+    const explicitCardLimit = parseInt(document.getElementById('gridCardLimitNum')?.value) || 0;
+    this.gridConfig.cardLimit = explicitCardLimit;
 
     const gridSection = this.sections.find(s => s.gridEnabled);
     if (gridSection) {
-      gridSection.gridColumns = this.gridConfig.columns;
+      gridSection.gridColumns = desktopCols;
+      gridSection.gridColumnsDesktop = desktopCols;
+      gridSection.gridColumnsTablet = tabletCols;
+      gridSection.gridColumnsPhone = phoneCols;
       gridSection.gridGap = this.gridConfig.gap;
       gridSection.gridMinWidth = this.gridConfig.minWidth;
       gridSection.gridMaxWidth = this.gridConfig.maxWidth;
+      gridSection.gridSectionPadding = this.gridConfig.sectionPadding;
       gridSection.gridCardLimit = this.gridConfig.cardLimit;
+      gridSection.showPlaceholders = this.gridConfig.showPlaceholders;
       console.log('Updated grid section config:', gridSection);
     }
   }
@@ -202,9 +511,17 @@ class AuraCanvasEditor {
 
     console.log('Syncing grid controls with section:', section.id);
 
-    if (document.getElementById('gridColumnsNum')) {
-      document.getElementById('gridColumnsNum').value = section.gridColumns || 4;
+    // Sync responsive columns
+    if (document.getElementById('gridColumnsDesktop')) {
+      document.getElementById('gridColumnsDesktop').value = section.gridColumnsDesktop || section.gridColumns || 4;
     }
+    if (document.getElementById('gridColumnsTablet')) {
+      document.getElementById('gridColumnsTablet').value = section.gridColumnsTablet || 2;
+    }
+    if (document.getElementById('gridColumnsPhone')) {
+      document.getElementById('gridColumnsPhone').value = section.gridColumnsPhone || 1;
+    }
+    
     if (document.getElementById('gridGapNum')) {
       document.getElementById('gridGapNum').value = section.gridGap || 24;
     }
@@ -212,11 +529,19 @@ class AuraCanvasEditor {
       document.getElementById('gridMinWidthNum').value = section.gridMinWidth || 280;
     }
     if (document.getElementById('gridMaxWidthNum')) {
-      document.getElementById('gridMaxWidthNum').value = section.gridMaxWidth || 1200;
+      document.getElementById('gridMaxWidthNum').value = section.gridMaxWidth || 1440;
+    }
+    if (document.getElementById('gridSectionPadding')) {
+      document.getElementById('gridSectionPadding').value = section.gridSectionPadding || 40;
     }
     if (document.getElementById('gridCardLimitNum')) {
       document.getElementById('gridCardLimitNum').value = section.gridCardLimit ?? 0;
     }
+    if (document.getElementById('showPlaceholders')) {
+      document.getElementById('showPlaceholders').checked = section.showPlaceholders !== false;
+    }
+
+    this.updateGridPreviewInfo();
   }
 
   updatePreviewFromControls() {
@@ -664,15 +989,9 @@ class AuraCanvasEditor {
       console.log('=== Load Sheet Data Result ===');
       console.log('Result:', result);
       console.log('Result.data:', result?.data);
-      console.log('Result type:', typeof result);
-      console.log('Result.data type:', typeof result?.data);
 
-      if (!result) {
+      if (!result || !result.data) {
         throw new Error('No data returned from connector');
-      }
-
-      if (!result.data) {
-        throw new Error('Invalid data format returned - result.data is missing');
       }
 
       this.sheetData = Array.isArray(result.data) ? result.data : [];
@@ -684,22 +1003,8 @@ class AuraCanvasEditor {
         
         console.log('=== Sheet Data Loaded ===');
         console.log('Total rows:', this.sheetData.length);
-        console.log('Sections count before update:', this.sections.length);
-        console.log('Has grid section before:', this.sections.some(s => s.gridEnabled));
-
-        if (this.sheetData.length > 0) {
-          console.log('First row:', this.sheetData[0]);
-          const imageKey = Object.keys(this.sheetData[0]).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url'));
-          if (imageKey) {
-            console.log('Image key:', imageKey);
-            console.log('Original image URL:', this.sheetData[0][imageKey]);
-            const convertedUrl = this.convertGoogleDriveUrl(this.sheetData[0][imageKey]);
-            console.log('Converted image URL:', convertedUrl);
-          }
-        }
 
         const hasGridSection = this.sections.some(s => s.gridEnabled);
-        console.log('Has grid section after check:', hasGridSection);
 
         if (!hasGridSection) {
           console.log('Creating new grid section...');
@@ -711,9 +1016,15 @@ class AuraCanvasEditor {
             visible: true,
             gridEnabled: true,
             gridColumns: this.gridConfig.columns,
+            gridColumnsDesktop: this.gridConfig.columnsDesktop || 4,
+            gridColumnsTablet: this.gridConfig.columnsTablet || 2,
+            gridColumnsPhone: this.gridConfig.columnsPhone || 1,
             gridGap: this.gridConfig.gap,
             gridMinWidth: this.gridConfig.minWidth,
             gridMaxWidth: this.gridConfig.maxWidth,
+            gridSectionPadding: this.gridConfig.sectionPadding || 40,
+            gridCardLimit: this.gridConfig.cardLimit || 0,
+            showPlaceholders: this.gridConfig.showPlaceholders !== false,
             styleApplied: false,
             styleSetId: null
           };
@@ -723,14 +1034,12 @@ class AuraCanvasEditor {
         } else {
           console.log('Using existing grid section');
         }
-
-        console.log('Sections count after update:', this.sections.length);
-        console.log('Calling renderPreview...');
       }
 
       this.renderDataPreview();
+      this.renderSections();
       this.renderPreview();
-      this.renderStyleSets();
+      this.updateGridPreviewInfo();
 
     } catch (error) {
       this.showToast('Failed to load data: ' + error.message, 'error');
@@ -1406,14 +1715,72 @@ class AuraCanvasEditor {
 
       const hasGridSections = this.sections.some(s => s.visible && s.gridEnabled);
       if (hasGridSections) {
-        const gridCSS = this.gridGenerator.generateFullGridCSS({
-          columns: this.gridConfig.columns,
-          gap: this.gridConfig.gap,
-          minWidth: this.gridConfig.minWidth,
-          maxWidth: this.gridConfig.maxWidth,
-          containerClass: '.grid-container'
-        });
-        html += gridCSS;
+        // Generate responsive grid CSS based on config
+        const desktopCols = this.gridConfig.columnsDesktop || 4;
+        const tabletCols = this.gridConfig.columnsTablet || 2;
+        const phoneCols = this.gridConfig.columnsPhone || 1;
+        const gap = this.gridConfig.gap || 24;
+        const maxWidth = this.gridConfig.maxWidth || 1440;
+        
+        html += `
+          /* Responsive Grid System */
+          .grid-container {
+            display: grid;
+            gap: ${gap}px;
+            max-width: ${maxWidth}px;
+            width: 100%;
+            margin: 0 auto;
+          }
+          
+          /* Phone (default) */
+          .grid-container {
+            grid-template-columns: repeat(${phoneCols}, 1fr);
+          }
+          
+          /* Tablet */
+          @media (min-width: 768px) {
+            .grid-container {
+              grid-template-columns: repeat(${tabletCols}, 1fr);
+            }
+          }
+          
+          /* Desktop */
+          @media (min-width: 1024px) {
+            .grid-container {
+              grid-template-columns: repeat(${desktopCols}, 1fr);
+            }
+          }
+          
+          /* Card placeholder styles */
+          .placeholder-card {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+          }
+          
+          .placeholder-card:hover {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-color: #9ca3af;
+            transform: translateY(-2px);
+          }
+          
+          .placeholder-card svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+          }
+        `;
       }
 
       html += '</style>';
@@ -1571,10 +1938,12 @@ class AuraCanvasEditor {
             html += `</div>`;
           }
         } else if (section.gridEnabled) {
-          const sectionGridColumns = section.gridColumns || this.gridConfig.columns || 4;
+          const sectionGridColumns = section.gridColumnsDesktop || section.gridColumns || this.gridConfig.columnsDesktop || 4;
           const sectionGridGap = section.gridGap || this.gridConfig.gap || 24;
-          const sectionGridMaxWidth = section.gridMaxWidth || this.gridConfig.maxWidth || 1200;
+          const sectionGridMaxWidth = section.gridMaxWidth || this.gridConfig.maxWidth || 1440;
+          const sectionPadding = section.gridSectionPadding || this.gridConfig.sectionPadding || 40;
           const sectionCardLimit = section.gridCardLimit ?? this.gridConfig.cardLimit ?? 0;
+          const showPlaceholders = section.showPlaceholders !== false;
 
           console.log('=== Rendering Grid Section ===');
           console.log('Section ID:', section.id);
@@ -1582,14 +1951,16 @@ class AuraCanvasEditor {
           console.log('Grid columns:', sectionGridColumns);
           console.log('Grid gap:', sectionGridGap);
           console.log('Grid max width:', sectionGridMaxWidth);
+          console.log('Section padding:', sectionPadding);
           console.log('Card limit:', sectionCardLimit);
+          console.log('Show placeholders:', showPlaceholders);
           console.log('Sheet data count:', this.sheetData.length);
           console.log('Current style:', this.currentStyle?.name);
 
           html += `<div class="section-framework" style="
             position: relative;
             border: 2px dashed #3b82f6;
-            padding: 8px;
+            padding: ${sectionPadding}px;
             margin: 8px 0;
             background: rgba(59, 130, 246, 0.02);
             border-radius: 4px;
@@ -1604,14 +1975,14 @@ class AuraCanvasEditor {
             font-size: 12px;
             border-radius: 2px;
             font-weight: 500;
-          ">${section.name}</div>`;
+          ">${section.name} (${this.sheetData.length} items loaded)</div>`;
+          
           html += `<div class="grid-container" style="
             display: grid;
             grid-template-columns: repeat(${sectionGridColumns}, 1fr);
             gap: ${sectionGridGap}px;
             max-width: ${sectionGridMaxWidth}px;
             margin: 0 auto;
-            padding: 20px;
           ">`;
 
           if (this.sheetData.length > 0) {
@@ -1625,34 +1996,37 @@ class AuraCanvasEditor {
               if (index < 10) {
                 console.log(`Card ${index + 1} data:`, item);
               }
-              html += `<div class="card">${this.renderCard(item)}</div>`;
+              html += `<div class="card" data-card-index="${index}" onclick="window.parent.postMessage({type:'cardClick', index:${index}, data:${JSON.stringify(item).replace(/"/g, '&quot;')}}, '*')" style="cursor: pointer;">${this.renderCard(item)}</div>`;
               cardCount++;
             });
             console.log('Total cards rendered:', cardCount);
-          } else {
-            const totalPlaceholders = sectionGridColumns * 3;
+            
+            // Add placeholders if enabled
+            if (showPlaceholders && dataToRender.length < sectionGridColumns) {
+              const placeholdersNeeded = sectionGridColumns - (dataToRender.length % sectionGridColumns);
+              if (placeholdersNeeded < sectionGridColumns) {
+                for (let i = 0; i < placeholdersNeeded; i++) {
+                  html += `<div class="placeholder-card">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                    <div>Empty Slot</div>
+                  </div>`;
+                }
+              }
+            }
+          } else if (showPlaceholders) {
+            // Show placeholders when no data
+            const totalPlaceholders = sectionGridColumns * 2; // Show 2 rows by default
             for (let i = 0; i < totalPlaceholders; i++) {
-              const cardStyle = this.currentStyle ? `
-                background: ${this.currentStyle.cardBg};
-                color: ${this.currentStyle.cardText};
-                border: 1px solid ${this.currentStyle.cardBorder};
-                border-radius: ${this.currentStyle.cardRadius}px;
-                padding: ${this.currentStyle.cardPadding}px;
-              ` : `
-                background: #f9fafb;
-                border: 2px dashed #d1d5db;
-              `;
-              
-              html += `<div class="card placeholder-card" style="
-                ${cardStyle}
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 200px;
-                color: #9ca3af;
-                font-size: 14px;
-              ">
-                Card ${i + 1}
+              html += `<div class="placeholder-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M3 9h18M9 21V9"/>
+                </svg>
+                <div>Card ${i + 1}</div>
+                <div style="font-size: 11px; opacity: 0.7; margin-top: 4px;">Load data from Google Sheets</div>
               </div>`;
             }
           }
@@ -2061,14 +2435,43 @@ class AuraCanvasEditor {
 
     const hasGridSections = this.sections.some(s => s.visible && s.gridEnabled);
     if (hasGridSections) {
-      const gridCSS = this.gridGenerator.generateFullGridCSS({
-        columns: this.gridConfig.columns,
-        gap: this.gridConfig.gap,
-        minWidth: this.gridConfig.minWidth,
-        maxWidth: this.gridConfig.maxWidth,
-        containerClass: '.grid-container'
-      });
-      html += `<style>${gridCSS}</style>`;
+      // Generate responsive grid CSS based on config
+      const desktopCols = this.gridConfig.columnsDesktop || 4;
+      const tabletCols = this.gridConfig.columnsTablet || 2;
+      const phoneCols = this.gridConfig.columnsPhone || 1;
+      const gap = this.gridConfig.gap || 24;
+      const maxWidth = this.gridConfig.maxWidth || 1440;
+      
+      html += `<style>
+        /* Responsive Grid System - Export */
+        .grid-container {
+          display: grid;
+          gap: ${gap}px;
+          max-width: ${maxWidth}px;
+          width: 100%;
+          margin: 0 auto;
+          padding: 40px 20px;
+        }
+        
+        /* Phone (default) */
+        .grid-container {
+          grid-template-columns: repeat(${phoneCols}, 1fr);
+        }
+        
+        /* Tablet */
+        @media (min-width: 768px) {
+          .grid-container {
+            grid-template-columns: repeat(${tabletCols}, 1fr);
+          }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1024px) {
+          .grid-container {
+            grid-template-columns: repeat(${desktopCols}, 1fr);
+          }
+        }
+      </style>`;
     }
 
     html += `</head>
@@ -2091,7 +2494,6 @@ class AuraCanvasEditor {
             margin: 0 auto;
             padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
           ">`;
-          html += `<div class="section-label">${section.name}</div>`;
           if (section.embedHtml) {
             html += section.embedHtml;
           } else {
@@ -2112,41 +2514,13 @@ class AuraCanvasEditor {
           }
           html += `</div>`;
         } else if (section.gridEnabled) {
-          const sectionGridColumns = section.gridColumns || this.gridConfig.columns || 4;
-          const sectionGridGap = section.gridGap || this.gridConfig.gap || 24;
-          const sectionGridMaxWidth = section.gridMaxWidth || this.gridConfig.maxWidth || 1200;
-          
-          html += `<div class="grid-container" style="
-            display: grid;
-            grid-template-columns: repeat(${sectionGridColumns}, 1fr);
-            gap: ${sectionGridGap}px;
-            max-width: ${sectionGridMaxWidth}px;
-            margin: 0 auto;
-            padding: 20px;
-          ">`;
+          html += `<div class="grid-container">`;
           if (this.sheetData.length > 0) {
             const cardLimit = section.gridCardLimit || this.gridConfig.cardLimit || 0;
             const dataToRender = cardLimit > 0 ? this.sheetData.slice(0, cardLimit) : this.sheetData;
             dataToRender.forEach(item => {
               html += `<div class="card">${this.renderCard(item)}</div>`;
             });
-          } else {
-            const gridCols = section.gridColumns || this.gridConfig.columns || 4;
-            const totalPlaceholders = gridCols * 3;
-            for (let i = 0; i < totalPlaceholders; i++) {
-              html += `<div class="card placeholder-card" style="
-                background: #f9fafb;
-                border: 2px dashed #d1d5db;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 200px;
-                color: #9ca3af;
-                font-size: 14px;
-              ">
-                Card ${i + 1}
-              </div>`;
-            }
           }
           html += `</div>`;
         } else {
@@ -2251,27 +2625,73 @@ class AuraCanvasEditor {
   }
 
   async loadLocalStyles() {
-    const styleFiles = [
-      { name: 'Minimal Card', file: 'style/minimal-card.json' },
-      { name: 'Minimal Testimonial Card', file: 'style/testimonal.json' }
-    ];
-
     try {
-      this.styleSets = [];
-      for (const styleInfo of styleFiles) {
-        const response = await fetch(styleInfo.file);
-        if (!response.ok) continue;
-        const styleSet = await response.json();
-        styleSet.isNewFormat = true;
-        styleSet.cardBg = styleSet.cardStyle?.bg || '#ffffff';
-        styleSet.cardText = styleSet.cardStyle?.text || '#1f2937';
-        styleSet.cardBorder = styleSet.cardStyle?.border || '#e5e7eb';
-        styleSet.cardRadius = styleSet.cardStyle?.radius || 12;
-        styleSet.cardPadding = styleSet.cardStyle?.padding || 16;
-        styleSet.cardShadow = styleSet.cardStyle?.shadow || 'md';
-        this.styleSets.push(styleSet);
+      // Try to load manifest file first
+      let styleFiles = [];
+      try {
+        const manifestResponse = await fetch('style/manifest.json');
+        if (manifestResponse.ok) {
+          styleFiles = await manifestResponse.json();
+        }
+      } catch (e) {
+        console.log('Manifest file not found, using default list');
+        styleFiles = [
+          { name: 'Card Standard', file: 'style/card.json' },
+          { name: 'Minimal Card', file: 'style/minimal-card.json' },
+          { name: 'Minimal Testimonial Card', file: 'style/testimonal.json' }
+        ];
       }
 
+      this.styleSets = [];
+      for (const styleInfo of styleFiles) {
+        try {
+          const response = await fetch(styleInfo.file);
+          if (!response.ok) {
+            console.warn(`Failed to load ${styleInfo.file}: ${response.status}`);
+            continue;
+          }
+          
+          const styleSet = await response.json();
+          
+          // Ensure ID and name are present
+          if (!styleSet.id) {
+            styleSet.id = styleInfo.file.replace(/[\/\.]/g, '_');
+          }
+          if (!styleSet.name) {
+            styleSet.name = styleInfo.name;
+          }
+          
+          // Skip if we already have this style ID
+          if (this.styleSets.some(s => s.id === styleSet.id)) {
+            console.log(`Skipping duplicate style ID: ${styleSet.id}`);
+            continue;
+          }
+          styleSet.isNewFormat = true;
+          if (styleSet.cardStyle) {
+            styleSet.cardBg = styleSet.cardStyle.bg || '#ffffff';
+            styleSet.cardText = styleSet.cardStyle.text || '#1f2937';
+            styleSet.cardBorder = styleSet.cardStyle.border || '#e5e7eb';
+            styleSet.cardRadius = styleSet.cardStyle.radius || 12;
+            styleSet.cardPadding = styleSet.cardStyle.padding || 16;
+            styleSet.cardShadow = styleSet.cardStyle.shadow || 'md';
+          } else {
+            // Set default values if no cardStyle defined
+            styleSet.cardBg = '#ffffff';
+            styleSet.cardText = '#1f2937';
+            styleSet.cardBorder = '#e5e7eb';
+            styleSet.cardRadius = 12;
+            styleSet.cardPadding = 16;
+            styleSet.cardShadow = 'md';
+          }
+          
+          console.log(`Loaded style: ${styleSet.name} (ID: ${styleSet.id})`);
+          this.styleSets.push(styleSet);
+        } catch (error) {
+          console.error(`Failed to parse ${styleInfo.file}:`, error);
+        }
+      }
+
+      console.log(`Total styles loaded: ${this.styleSets.length}`);
       this.renderStyleSelect();
     } catch (error) {
       console.error('Failed to load local styles:', error);
@@ -2836,7 +3256,6 @@ class AuraCanvasEditor {
   }
 }
 
-const editor = new AuraCanvasEditor();
 // ============================================
 // 诊断工具 - 在控制台中使用
 // ============================================
@@ -2999,3 +3418,7 @@ window.tallyDiagnostics = {
 
 // 自动打印帮助信息
 console.log('💡 Tally 诊断工具已加载。输入 tallyDiagnostics.help() 查看可用命令。');
+
+// Initialize editor
+const editor = new AuraCanvasEditor();
+editor.init();

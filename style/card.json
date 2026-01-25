@@ -1,6 +1,8 @@
 {
   "type": "card",
   "id": "testimonial_card_standard",
+  "name": "Card Standard",
+  "description": "Standard testimonial card with large quote on left and image on right. Premium layout.",
   "data_binding": {
     "name": "{{name}}",
     "position": "{{position}}",

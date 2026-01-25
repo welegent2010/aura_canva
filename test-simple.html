@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试页面</title>
+</head>
+<body>
+  <h1>测试 JavaScript 加载</h1>
+  <div id="test-output"></div>
+  
+  <script>
+    console.log('=== 开始测试 ===');
+    document.getElementById('test-output').innerHTML = '<p style="color: green;">✓ HTML 加载成功</p>';
+    
+    // 测试加载 sheets.js
+    const script1 = document.createElement('script');
+    script1.src = 'js/sheets.js';
+    script1.onload = () => {
+      console.log('✓ sheets.js 加载成功');
+      document.getElementById('test-output').innerHTML += '<p style="color: green;">✓ sheets.js 加载成功</p>';
+      
+      // 测试加载 grid.js
+      const script2 = document.createElement('script');
+      script2.src = 'js/grid.js';
+      script2.onload = () => {
+        console.log('✓ grid.js 加载成功');
+        document.getElementById('test-output').innerHTML += '<p style="color: green;">✓ grid.js 加载成功</p>';
+        
+        // 测试加载 editor.js
+        const script3 = document.createElement('script');
+        script3.src = 'js/editor.js';
+        script3.onload = () => {
+          console.log('✓ editor.js 加载成功');
+          document.getElementById('test-output').innerHTML += '<p style="color: green;">✓ editor.js 加载成功</p>';
+          console.log('✓ 所有文件加载完成');
+          document.getElementById('test-output').innerHTML += '<p style="color: blue; font-weight: bold;">✓✓✓ 所有文件加载成功！</p>';
+        };
+        script3.onerror = (e) => {
+          console.error('✗ editor.js 加载失败', e);
+          document.getElementById('test-output').innerHTML += '<p style="color: red;">✗ editor.js 加载失败</p>';
+        };
+        document.body.appendChild(script3);
+      };
+      script2.onerror = (e) => {
+        console.error('✗ grid.js 加载失败', e);
+        document.getElementById('test-output').innerHTML += '<p style="color: red;">✗ grid.js 加载失败</p>';
+      };
+      document.body.appendChild(script2);
+    };
+    script1.onerror = (e) => {
+      console.error('✗ sheets.js 加载失败', e);
+      document.getElementById('test-output').innerHTML += '<p style="color: red;">✗ sheets.js 加载失败</p>';
+    };
+    document.body.appendChild(script1);
+  </script>
+</body>
+</html>

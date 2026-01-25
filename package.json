@@ -1,13 +1,13 @@
 {
   "name": "aura-canvas",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "Aura Canvas - 轻量化HTML拼接与动态制卡工具",
-  "main": "index.html",
+  "main": "editor.html",
   "scripts": {
     "start": "npx serve . -p 3000",
     "dev": "npx live-server --port=3000"
   },
-  "keywords": ["aura", "canvas", "html", "google-sheets", "grid"],
+  "keywords": ["aura", "canvas", "html", "google-sheets", "grid", "card-generator"],
   "author": "",
   "license": "MIT"
 }
