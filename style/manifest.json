@@ -1,7 +1,6 @@
 [
   {
-    "name": "Card Standard",
-    "file": "style/card.json"
+    "name": "Minimal Card",
     "file": "style/minimal-card.json"
   },
   {

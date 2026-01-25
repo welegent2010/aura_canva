@@ -3,7 +3,7 @@
   "name": "Minimal Testimonial Card",
   "description": "Clean, modern testimonial card with portrait on left and text on right. Features name, role, and review content.",
   "version": "2.0.0",
-  "thumbnail": "https://via.placeholder.com/300x200/ffffff/1f2937?text=Testimonial+Card",
+  "thumbnail": "https://via.placeholder.com/300x200/ffffff/1f2937?text=Testimonial+Card  ",
 
   "grid": {
     "columns": 4,

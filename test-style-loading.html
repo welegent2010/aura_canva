@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>样式加载测试</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        h1 {
+            color: #111827;
+        }
+        .test-result {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: #059669;
+            font-weight: 500;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: 500;
+        }
+        .info {
+            color: #3b82f6;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+        .style-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            background: #fafafa;
+        }
+        .style-card h3 {
+            margin: 0 0 8px 0;
+            color: #374151;
+            font-size: 16px;
+        }
+        .style-card p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 样式文件加载测试</h1>
+    
+    <div class="test-result">
+        <h2>测试状态</h2>
+        <p id="status">正在加载...</p>
+    </div>
+
+    <div class="test-result">
+        <h2>Manifest.json 内容</h2>
+        <pre id="manifest-content"></pre>
+    </div>
+
+    <div class="test-result">
+        <h2>加载的样式列表</h2>
+        <div id="styles-list"></div>
+    </div>
+
+    <div class="test-result">
+        <h2>控制台日志</h2>
+        <pre id="console-log"></pre>
+    </div>
+
+    <script>
+        const logs = [];
+        
+        // 拦截console.log
+        const originalLog = console.log;
+        console.log = function(...args) {
+            logs.push(args.join(' '));
+            originalLog.apply(console, args);
+            updateConsoleLog();
+        };
+
+        const originalError = console.error;
+        console.error = function(...args) {
+            logs.push('ERROR: ' + args.join(' '));
+            originalError.apply(console, args);
+            updateConsoleLog();
+        };
+
+        function updateConsoleLog() {
+            document.getElementById('console-log').textContent = logs.join('\n');
+        }
+
+        async function testStyleLoading() {
+            try {
+                // 1. 加载 manifest.json
+                console.log('1. 加载 manifest.json...');
+                const manifestResponse = await fetch('style/manifest.json');
+                if (!manifestResponse.ok) {
+                    throw new Error(`Manifest加载失败: ${manifestResponse.status}`);
+                }
+                
+                const styleFiles = await manifestResponse.json();
+                console.log(`✓ Manifest加载成功，包含 ${styleFiles.length} 个样式`);
+                document.getElementById('manifest-content').textContent = 
+                    JSON.stringify(styleFiles, null, 2);
+
+                // 2. 加载每个样式文件
+                console.log('\n2. 加载样式文件...');
+                const loadedStyles = [];
+                
+                for (const styleInfo of styleFiles) {
+                    try {
+                        console.log(`  加载 ${styleInfo.file}...`);
+                        const response = await fetch(styleInfo.file);
+                        
+                        if (!response.ok) {
+                            console.error(`  ✗ ${styleInfo.file} 加载失败: ${response.status}`);
+                            continue;
+                        }
+                        
+                        const styleSet = await response.json();
+                        
+                        // 验证必要字段
+                        if (!styleSet.id) {
+                            styleSet.id = styleInfo.file.replace(/[\/\.]/g, '_');
+                            console.log(`  ⚠ 未找到ID，使用生成的ID: ${styleSet.id}`);
+                        }
+                        if (!styleSet.name) {
+                            styleSet.name = styleInfo.name;
+                            console.log(`  ⚠ 未找到name，使用manifest中的name: ${styleSet.name}`);
+                        }
+                        
+                        console.log(`  ✓ ${styleSet.name} (ID: ${styleSet.id})`);
+                        console.log(`    - cardStyle存在: ${styleSet.cardStyle ? '是' : '否'}`);
+                        console.log(`    - grid存在: ${styleSet.grid ? '是' : '否'}`);
+                        
+                        loadedStyles.push(styleSet);
+                    } catch (error) {
+                        console.error(`  ✗ ${styleInfo.file} 解析失败:`, error.message);
+                    }
+                }
+
+                console.log(`\n✓ 共成功加载 ${loadedStyles.length} 个样式`);
+                
+                // 显示结果
+                const statusEl = document.getElementById('status');
+                if (loadedStyles.length === styleFiles.length) {
+                    statusEl.innerHTML = `<span class="success">✓ 全部样式加载成功！(${loadedStyles.length}/${styleFiles.length})</span>`;
+                } else {
+                    statusEl.innerHTML = `<span class="error">⚠ 部分样式加载失败 (${loadedStyles.length}/${styleFiles.length})</span>`;
+                }
+
+                // 显示样式卡片
+                const stylesListEl = document.getElementById('styles-list');
+                if (loadedStyles.length === 0) {
+                    stylesListEl.innerHTML = '<p class="error">未加载任何样式</p>';
+                } else {
+                    stylesListEl.innerHTML = loadedStyles.map(style => `
+                        <div class="style-card">
+                            <h3>${style.name}</h3>
+                            <p><strong>ID:</strong> ${style.id}</p>
+                            <p><strong>描述:</strong> ${style.description || '无'}</p>
+                            <p><strong>cardStyle:</strong> ${style.cardStyle ? '✓ 存在' : '✗ 缺失'}</p>
+                            <p><strong>grid:</strong> ${style.grid ? `✓ ${style.grid.columns}列` : '✗ 缺失'}</p>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('测试失败:', error);
+                document.getElementById('status').innerHTML = 
+                    `<span class="error">✗ 测试失败: ${error.message}</span>`;
+            }
+        }
+
+        // 运行测试
+        testStyleLoading();
+    </script>
+</body>
+</html>
