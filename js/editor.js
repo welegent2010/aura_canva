@@ -11,7 +11,8 @@ class AuraCanvasEditor {
       columns: 3,
       gap: 24,
       minWidth: 300,
-      maxWidth: 1200
+      maxWidth: 1200,
+      cardLimit: 0
     };
     this.previewWidth = 'desktop';
     this.originalHead = '';
@@ -24,14 +25,44 @@ class AuraCanvasEditor {
     try {
       await this.connector.init();
       this.bindEvents();
+      this.initSidebarResizer();
       this.loadSavedData();
-      await this.loadStyleFiles();
-      this.renderStyleSets();
+      await this.loadLocalStyles();
+      this.renderStyleSelect();
       this.showToast('Welcome to Aura Canvas Editor', 'success');
     } catch (error) {
       console.error('Failed to initialize editor:', error);
       this.showToast('Initialization failed: ' + error.message, 'error');
     }
+  }
+
+  initSidebarResizer() {
+    const resizer = document.getElementById('sidebarResizer');
+    const sidebar = document.getElementById('sidebar');
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      resizer.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+
+      const newWidth = e.clientX;
+      if (newWidth >= 280 && newWidth <= 600) {
+        sidebar.style.width = newWidth + 'px';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      isResizing = false;
+      resizer.classList.remove('resizing');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
   }
 
   bindEvents() {
@@ -45,8 +76,8 @@ class AuraCanvasEditor {
     document.getElementById('exportProjectBtn').addEventListener('click', () => this.exportProject());
     document.getElementById('addSectionBtn').addEventListener('click', () => this.addSection());
     document.getElementById('loadDataBtn').addEventListener('click', () => this.loadSheetData());
-    document.getElementById('loadStyleSheetsBtn').addEventListener('click', () => this.loadStyleSheets());
-    document.getElementById('styleSheetName').addEventListener('change', () => this.loadSelectedStyle());
+    document.getElementById('clearCacheBtn').addEventListener('click', () => this.clearCache());
+    document.getElementById('loadStyleBtn').addEventListener('click', () => this.loadLocalStyle());
     document.getElementById('addTallyBtn').addEventListener('click', () => this.addTallySection());
     document.getElementById('refreshPreviewBtn').addEventListener('click', () => this.refreshPreview());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
@@ -59,16 +90,66 @@ class AuraCanvasEditor {
   }
 
   bindGridControls() {
-    const controls = ['gridColumnsNum', 'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum'];
+    const controls = ['gridColumnsNum', 'gridGapNum', 'gridMinWidthNum', 'gridMaxWidthNum', 'gridCardLimitNum'];
     controls.forEach(id => {
       const input = document.getElementById(id);
       if (input) {
         input.addEventListener('input', () => {
           this.updateGridConfigFromControls();
-          this.updatePreviewFromControls();
         });
       }
     });
+
+    const applyGridBtn = document.getElementById('applyGridBtn');
+    if (applyGridBtn) {
+      applyGridBtn.addEventListener('click', () => this.applyGridConfig());
+    }
+  }
+
+  applyGridConfig() {
+    this.updateGridConfigFromControls();
+
+    console.log('=== Applying Grid Config ===');
+    console.log('Grid config:', this.gridConfig);
+
+    const existingGridSection = this.sections.find(s => s.gridEnabled);
+    console.log('Existing grid section:', existingGridSection ? 'Yes' : 'No');
+
+    if (!existingGridSection) {
+      const gridSection = {
+        id: Date.now(),
+        name: 'Grid Section',
+        content: '',
+        className: 'grid-section',
+        visible: true,
+        gridEnabled: true,
+        gridColumns: this.gridConfig.columns,
+        gridGap: this.gridConfig.gap,
+        gridMinWidth: this.gridConfig.minWidth,
+        gridMaxWidth: this.gridConfig.maxWidth,
+        gridCardLimit: this.gridConfig.cardLimit,
+        styleApplied: false,
+        styleSetId: null
+      };
+      console.log('Creating new grid section, ID:', gridSection.id);
+      this.sections.push(gridSection);
+    } else {
+      console.log('Updating existing grid section, ID:', existingGridSection.id);
+      existingGridSection.gridColumns = this.gridConfig.columns;
+      existingGridSection.gridGap = this.gridConfig.gap;
+      existingGridSection.gridMinWidth = this.gridConfig.minWidth;
+      existingGridSection.gridMaxWidth = this.gridConfig.maxWidth;
+      existingGridSection.gridCardLimit = this.gridConfig.cardLimit;
+      console.log('Updated grid section:', existingGridSection);
+    }
+
+    this.selectedSection = this.sections.find(s => s.gridEnabled);
+    console.log('Selected section:', this.selectedSection?.name, 'ID:', this.selectedSection?.id);
+    console.log('Sections count:', this.sections.length);
+
+    this.renderSections();
+    this.renderPreview();
+    this.showToast('Grid configuration applied', 'success');
   }
 
   bindStyleControls() {
@@ -89,16 +170,42 @@ class AuraCanvasEditor {
   }
 
   updateGridConfigFromControls() {
-    this.gridConfig.columns = parseInt(document.getElementById('gridColumns').value);
-    this.gridConfig.gap = parseInt(document.getElementById('gridGap').value);
-    this.gridConfig.minWidth = parseInt(document.getElementById('gridMinWidth').value);
-    this.gridConfig.maxWidth = parseInt(document.getElementById('gridMaxWidth').value);
-    
-    if (this.selectedSection) {
-      this.selectedSection.gridColumns = this.gridConfig.columns;
-      this.selectedSection.gridGap = this.gridConfig.gap;
-      this.selectedSection.gridMinWidth = this.gridConfig.minWidth;
-      this.selectedSection.gridMaxWidth = this.gridConfig.maxWidth;
+    this.gridConfig.columns = parseInt(document.getElementById('gridColumnsNum').value);
+    this.gridConfig.gap = parseInt(document.getElementById('gridGapNum').value);
+    this.gridConfig.minWidth = parseInt(document.getElementById('gridMinWidthNum').value);
+    this.gridConfig.maxWidth = parseInt(document.getElementById('gridMaxWidthNum').value);
+    this.gridConfig.cardLimit = parseInt(document.getElementById('gridCardLimitNum').value) || 0;
+
+    const gridSection = this.sections.find(s => s.gridEnabled);
+    if (gridSection) {
+      gridSection.gridColumns = this.gridConfig.columns;
+      gridSection.gridGap = this.gridConfig.gap;
+      gridSection.gridMinWidth = this.gridConfig.minWidth;
+      gridSection.gridMaxWidth = this.gridConfig.maxWidth;
+      gridSection.gridCardLimit = this.gridConfig.cardLimit;
+      console.log('Updated grid section config:', gridSection);
+    }
+  }
+
+  syncGridControls(section) {
+    if (!section || !section.gridEnabled) return;
+
+    console.log('Syncing grid controls with section:', section.id);
+
+    if (document.getElementById('gridColumnsNum')) {
+      document.getElementById('gridColumnsNum').value = section.gridColumns || 4;
+    }
+    if (document.getElementById('gridGapNum')) {
+      document.getElementById('gridGapNum').value = section.gridGap || 24;
+    }
+    if (document.getElementById('gridMinWidthNum')) {
+      document.getElementById('gridMinWidthNum').value = section.gridMinWidth || 280;
+    }
+    if (document.getElementById('gridMaxWidthNum')) {
+      document.getElementById('gridMaxWidthNum').value = section.gridMaxWidth || 1200;
+    }
+    if (document.getElementById('gridCardLimitNum')) {
+      document.getElementById('gridCardLimitNum').value = section.gridCardLimit ?? 0;
     }
   }
 
@@ -346,6 +453,7 @@ class AuraCanvasEditor {
       document.getElementById('gridMinWidthNum').value = this.selectedSection.gridMinWidth;
       document.getElementById('gridMaxWidth').value = this.selectedSection.gridMaxWidth;
       document.getElementById('gridMaxWidthNum').value = this.selectedSection.gridMaxWidth;
+      document.getElementById('gridCardLimitNum').value = this.selectedSection.gridCardLimit ?? 0;
       this.updateGridConfigFromControls();
     }
     this.renderSections();
@@ -400,6 +508,48 @@ class AuraCanvasEditor {
         typeBadge = `<span class="type-badge" style="background: #10b981; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">Tally Form</span>`;
       }
       
+      let imagePreview = '';
+      if (section.gridEnabled && this.sheetData.length > 0) {
+        console.log('=== Rendering Image Preview ===');
+        console.log('Sheet data count:', this.sheetData.length);
+        console.log('First item:', this.sheetData[0]);
+        
+        const firstItem = this.sheetData[0];
+        const imageUrl = this.findImageUrl(firstItem);
+        console.log('Image URL found:', imageUrl);
+        
+        if (imageUrl) {
+          const previewImages = this.sheetData.slice(0, 3).map((item, idx) => {
+            const url = this.findImageUrl(item);
+            console.log(`Preview image ${idx}:`, url);
+            if (!url) return '';
+            return `<img src="${url}" style="
+              width: 40px;
+              height: 40px;
+              border-radius: 4px;
+              object-fit: cover;
+              flex-shrink: 0;
+              border: 1px solid #e5e7eb;
+            " onerror="console.error('Failed to load image:', this.src); this.outerHTML='<div style=\'width:40px;height:40px;border-radius:4px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9ca3af\'>?</div>'">`;
+          }).join('');
+          
+          imagePreview = `
+            <div class="section-image-preview" style="
+              margin-top: 8px;
+              display: flex;
+              gap: 8px;
+              overflow-x: auto;
+              padding-bottom: 4px;
+            ">
+              ${previewImages}
+            </div>
+          `;
+          console.log('Image preview HTML length:', imagePreview.length);
+        } else {
+          console.log('No image URL found, skipping preview');
+        }
+      }
+      
       return `
       <div class="section-item ${this.selectedSection && this.selectedSection.id === section.id ? 'selected' : ''} ${!section.visible ? 'opacity-50' : ''}"
            data-id="${section.id}">
@@ -423,6 +573,7 @@ class AuraCanvasEditor {
           ` : ''}
           ${section.styleApplied ? `<span class="style-badge" style="background: #7c2bee; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">${styleSet ? styleSet.name : 'Style Applied'}</span>` : ''}
         </div>
+        ${imagePreview}
       </div>
     `;
     }).join('');
@@ -473,8 +624,18 @@ class AuraCanvasEditor {
         showWarnings: true
       });
 
-      if (!result || !result.data) {
-        throw new Error('Invalid data format returned');
+      console.log('=== Load Sheet Data Result ===');
+      console.log('Result:', result);
+      console.log('Result.data:', result?.data);
+      console.log('Result type:', typeof result);
+      console.log('Result.data type:', typeof result?.data);
+
+      if (!result) {
+        throw new Error('No data returned from connector');
+      }
+
+      if (!result.data) {
+        throw new Error('Invalid data format returned - result.data is missing');
       }
 
       this.sheetData = Array.isArray(result.data) ? result.data : [];
@@ -486,6 +647,9 @@ class AuraCanvasEditor {
         
         console.log('=== Sheet Data Loaded ===');
         console.log('Total rows:', this.sheetData.length);
+        console.log('Sections count before update:', this.sections.length);
+        console.log('Has grid section before:', this.sections.some(s => s.gridEnabled));
+
         if (this.sheetData.length > 0) {
           console.log('First row:', this.sheetData[0]);
           const imageKey = Object.keys(this.sheetData[0]).find(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('url'));
@@ -496,8 +660,37 @@ class AuraCanvasEditor {
             console.log('Converted image URL:', convertedUrl);
           }
         }
+
+        const hasGridSection = this.sections.some(s => s.gridEnabled);
+        console.log('Has grid section after check:', hasGridSection);
+
+        if (!hasGridSection) {
+          console.log('Creating new grid section...');
+          const gridSection = {
+            id: Date.now(),
+            name: 'Data Grid Section',
+            content: '',
+            className: 'grid-section',
+            visible: true,
+            gridEnabled: true,
+            gridColumns: this.gridConfig.columns,
+            gridGap: this.gridConfig.gap,
+            gridMinWidth: this.gridConfig.minWidth,
+            gridMaxWidth: this.gridConfig.maxWidth,
+            styleApplied: false,
+            styleSetId: null
+          };
+          this.sections.push(gridSection);
+          this.selectedSection = gridSection;
+          console.log('Grid section created, ID:', gridSection.id);
+        } else {
+          console.log('Using existing grid section');
+        }
+
+        console.log('Sections count after update:', this.sections.length);
+        console.log('Calling renderPreview...');
       }
-      
+
       this.renderDataPreview();
       this.renderPreview();
       this.renderStyleSets();
@@ -508,6 +701,17 @@ class AuraCanvasEditor {
       const btn = document.getElementById('loadDataBtn');
       btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2L3 7h2v7h6V7h2L8 2z"/></svg>Load Data';
       btn.disabled = false;
+    }
+  }
+
+  async clearCache() {
+    try {
+      await this.connector.clearCache();
+      this.showToast('Cache cleared successfully', 'success');
+      console.log('Cache cleared');
+    } catch (error) {
+      this.showToast('Failed to clear cache: ' + error.message, 'error');
+      console.error('Failed to clear cache:', error);
     }
   }
 
@@ -539,24 +743,6 @@ class AuraCanvasEditor {
       </table>
       ${this.sheetData.length > 10 ? `<p style="margin-top: 12px; color: #6b7280; font-size: 12px;">Showing first 10 of ${this.sheetData.length} records</p>` : ''}
     `;
-  }
-
-  applyGridConfig() {
-    this.gridConfig = {
-      columns: parseInt(document.getElementById('gridColumnsNum').value),
-      gap: parseInt(document.getElementById('gridGapNum').value),
-      minWidth: parseInt(document.getElementById('gridMinWidthNum').value),
-      maxWidth: parseInt(document.getElementById('gridMaxWidthNum').value)
-    };
-
-    if (this.selectedSection) {
-      this.selectedSection.gridEnabled = true;
-      this.selectedSection.gridColumns = this.gridConfig.columns;
-    }
-
-    this.renderSections();
-    this.renderPreview();
-    this.showToast('Grid configuration applied', 'success');
   }
 
   saveStyleSet() {
@@ -784,11 +970,7 @@ class AuraCanvasEditor {
     const container = document.getElementById('styleSetList');
     const select = document.getElementById('styleSetSelect');
     
-    let displayStyleSets = this.styleSets;
-    
-    if (this.currentStyle) {
-      displayStyleSets = [this.currentStyle];
-    }
+    const displayStyleSets = this.styleSets;
     
     if (displayStyleSets.length === 0) {
       container.innerHTML = '<p style="color: #6b7280; font-size: 14px;">No style set selected</p>';
@@ -855,6 +1037,10 @@ class AuraCanvasEditor {
         }
         
         template = template.replace(/<img\s+/g, '<img crossorigin="anonymous" ');
+        template = template.replace(/<img([^>]*?)src="([^"]*?)"/g, (match, attrs, src) => {
+          const convertedSrc = this.convertGoogleDriveUrl(src);
+          return `<img${attrs}src="${convertedSrc}" onerror="this.onerror=null;this.src='${imageDefault}'"`;
+        });
         
         const css = styleSet.template.css || '';
         const bg = styleSet.cardBg || styleSet.cardStyle?.bg || '#ffffff';
@@ -944,9 +1130,12 @@ class AuraCanvasEditor {
           }
         }
         
+        const convertedPreviewUrl = this.convertGoogleDriveUrl(previewImageUrl);
+        const imageDefaultUrl = styleSet.fields?.image?.default || 'https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';
+        
         previewHtml = `
           <div class="mini-card" style="background: ${styleSet.cardBg}; color: ${styleSet.cardText}; border: 1px solid ${styleSet.cardBorder}; border-radius: ${styleSet.cardRadius}px; padding: ${styleSet.cardPadding}px;">
-            <img src="${previewImageUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
+            <img src="${convertedPreviewUrl}" alt="${previewNameText}" onerror="this.onerror=null;this.src='${imageDefaultUrl}'" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">
             <div class="mini-card-title" style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${previewNameText}</div>
             <div class="mini-card-accent" style="font-size: 18px; font-weight: 700; color: ${styleSet.cardAccent}; margin-bottom: 8px;">${previewPriceText}</div>
             <div class="mini-card-body" style="font-size: 13px; line-height: 1.5; color: #6b7280; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${previewDescText}</div>
@@ -1014,6 +1203,12 @@ class AuraCanvasEditor {
   renderPreview() {
     const container = document.getElementById('previewContainer');
     
+    console.log('=== renderPreview called ===');
+    console.log('Sections count:', this.sections.length);
+    console.log('Sections:', this.sections.map(s => ({ id: s.id, name: s.name, visible: s.visible, type: s.type, gridEnabled: s.gridEnabled })));
+    console.log('Sheet data count:', this.sheetData.length);
+    console.log('Current style:', this.currentStyle?.name);
+    
     if (this.sections.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
@@ -1048,6 +1243,13 @@ class AuraCanvasEditor {
       }
       
       if (this.currentStyle) {
+        console.log('=== Generating Style CSS ===');
+        console.log('Style name:', this.currentStyle.name);
+        console.log('Is new format:', this.currentStyle.isNewFormat);
+        console.log('Has template CSS:', !!this.currentStyle.template?.css);
+        console.log('Has text styles:', !!this.currentStyle.textStyles);
+        console.log('Text styles:', this.currentStyle.textStyles);
+
         const animEnabled = this.currentStyle.animation?.enabled ?? false;
         const animHover = this.currentStyle.animation?.hover || {};
         const animEntry = this.currentStyle.animation?.entry || {};
@@ -1116,49 +1318,53 @@ class AuraCanvasEditor {
               gap: ${this.gridConfig.gap}px !important;
             }
           }
-
-          .card h3 {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            font-weight: 600;
-          }
-
-          .card .subtitle {
-            margin: 0 0 4px 0;
-            font-size: 12px;
-            font-weight: 500;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
-
-          .card .price {
-            margin: 0 0 8px 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--primary, #7c2bee);
-          }
-
-          .card p {
-            margin: 0;
-            font-size: 13px;
-            line-height: 1.5;
-            color: #6b7280;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-          }
-
-          .card .badge {
-            background: ${this.currentStyle?.cardAccent || '#7c2bee'};
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-          }
         `;
+
+        if (!this.currentStyle.isNewFormat || !this.currentStyle.template?.css) {
+          html += `
+            .card h3 {
+              margin: 0 0 8px 0;
+              font-size: 16px;
+              font-weight: 600;
+            }
+
+            .card .subtitle {
+              margin: 0 0 4px 0;
+              font-size: 12px;
+              font-weight: 500;
+              color: #6b7280;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .card .price {
+              margin: 0 0 8px 0;
+              font-size: 18px;
+              font-weight: 700;
+              color: var(--primary, #7c2bee);
+            }
+
+            .card p {
+              margin: 0;
+              font-size: 13px;
+              line-height: 1.5;
+              color: #6b7280;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+            }
+
+            .card .badge {
+              background: ${this.currentStyle?.cardAccent || '#7c2bee'};
+              color: white;
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 12px;
+            }
+          `;
+        }
       }
 
       const hasGridSections = this.sections.some(s => s.visible && s.gridEnabled);
@@ -1203,12 +1409,22 @@ class AuraCanvasEditor {
 
     html += '</head><body>';
 
+    console.log('=== Rendering Preview Sections ===');
+    console.log('Total sections:', this.sections.length);
+    console.log('Visible sections:', this.sections.filter(s => s.visible).length);
+
     this.sections.forEach(section => {
       if (section.visible) {
+        console.log('Rendering section:', section.name, 'type:', section.type);
+        
         if (section.type === 'tally') {
+          console.log('Rendering Tally section with URL:', section.url);
           const config = section.config || {};
           const width = config.width || 1200;
           const padding = config.padding || { top: 60, bottom: 60, left: 20, right: 20 };
+          
+          const embedUrl = section.url;
+          const formId = embedUrl.match(/\/embed\/([a-zA-Z0-9]+)/)?.[1] || '';
           
           html += `<div class="tally-section" style="
             max-width: ${width}px;
@@ -1231,21 +1447,94 @@ class AuraCanvasEditor {
             font-weight: 500;
             z-index: 10;
           ">${section.name}</div>`;
-          html += `<iframe src="${section.url}" data-tally-open-widget="" data-tally-embed-id="" title="${section.name}" style="width: 100%; height: 600px; border: none; background: transparent;"></iframe>`;
+          html += `<iframe 
+            src="${embedUrl}" 
+            data-tally-embed="${formId}"
+            data-tally-width="100%"
+            data-tally-auto-height="true"
+            title="${section.name}" 
+            style="width: 100%; height: 600px; border: none; background: transparent;"
+            frameborder="0"
+            marginheight="0"
+            marginwidth="0"
+            loading="lazy"
+          ></iframe>`;
           html += `</div>`;
         } else if (section.gridEnabled) {
-          html += `<div class="grid-container">`;
+          const sectionGridColumns = section.gridColumns || this.gridConfig.columns || 4;
+          const sectionGridGap = section.gridGap || this.gridConfig.gap || 24;
+          const sectionGridMaxWidth = section.gridMaxWidth || this.gridConfig.maxWidth || 1200;
+          const sectionCardLimit = section.gridCardLimit ?? this.gridConfig.cardLimit ?? 0;
+
+          console.log('=== Rendering Grid Section ===');
+          console.log('Section ID:', section.id);
+          console.log('Section name:', section.name);
+          console.log('Grid columns:', sectionGridColumns);
+          console.log('Grid gap:', sectionGridGap);
+          console.log('Grid max width:', sectionGridMaxWidth);
+          console.log('Card limit:', sectionCardLimit);
+          console.log('Sheet data count:', this.sheetData.length);
+          console.log('Current style:', this.currentStyle?.name);
+
+          html += `<div class="section-framework" style="
+            position: relative;
+            border: 2px dashed #3b82f6;
+            padding: 8px;
+            margin: 8px 0;
+            background: rgba(59, 130, 246, 0.02);
+            border-radius: 4px;
+          ">`;
+          html += `<div class="section-label" style="
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #3b82f6;
+            color: white;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 2px;
+            font-weight: 500;
+          ">${section.name}</div>`;
+          html += `<div class="grid-container" style="
+            display: grid;
+            grid-template-columns: repeat(${sectionGridColumns}, 1fr);
+            gap: ${sectionGridGap}px;
+            max-width: ${sectionGridMaxWidth}px;
+            margin: 0 auto;
+            padding: 20px;
+          ">`;
+
           if (this.sheetData.length > 0) {
-            this.sheetData.forEach(item => {
+            console.log('Rendering data cards...');
+            const dataToRender = sectionCardLimit > 0 ? this.sheetData.slice(0, sectionCardLimit) : this.sheetData;
+            console.log('Card limit applied:', sectionCardLimit);
+            console.log('Cards to render:', dataToRender.length);
+            
+            let cardCount = 0;
+            dataToRender.forEach((item, index) => {
+              if (index < 10) {
+                console.log(`Card ${index + 1} data:`, item);
+              }
               html += `<div class="card">${this.renderCard(item)}</div>`;
+              cardCount++;
             });
+            console.log('Total cards rendered:', cardCount);
           } else {
-            const gridCols = section.gridColumns || this.gridConfig.columns || 4;
-            const totalPlaceholders = gridCols * 3;
+            const totalPlaceholders = sectionGridColumns * 3;
             for (let i = 0; i < totalPlaceholders; i++) {
-              html += `<div class="card placeholder-card" style="
+              const cardStyle = this.currentStyle ? `
+                background: ${this.currentStyle.cardBg};
+                color: ${this.currentStyle.cardText};
+                border: 1px solid ${this.currentStyle.cardBorder};
+                border-radius: ${this.currentStyle.cardRadius}px;
+                padding: ${this.currentStyle.cardPadding}px;
+              ` : `
                 background: #f9fafb;
                 border: 2px dashed #d1d5db;
+              `;
+              
+              html += `<div class="card placeholder-card" style="
+                ${cardStyle}
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1257,6 +1546,7 @@ class AuraCanvasEditor {
               </div>`;
             }
           }
+          html += `</div>`;
           html += `</div>`;
         } else {
           html += `<div class="section-framework" style="
@@ -1286,13 +1576,18 @@ class AuraCanvasEditor {
 
     html += '</body></html>';
 
-    container.innerHTML = `<iframe class="preview-iframe" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads"></iframe>`;
+    console.log('Creating preview iframe with blob URL');
+    const blob = new Blob([html], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    container.innerHTML = `<iframe class="preview-iframe" src="${blobUrl}" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation allow-presentation allow-downloads allow-modals allow-popups-to-escape-sandbox"></iframe>`;
     const iframe = container.querySelector('iframe');
-    iframe.srcdoc = html;
+    console.log('Preview iframe created with blob URL:', blobUrl);
   }
 
   convertGoogleDriveUrl(url) {
     if (!url) return '';
+    
+    console.log('convertGoogleDriveUrl called with:', url);
     
     const trimmedUrl = url.trim();
     
@@ -1301,7 +1596,7 @@ class AuraCanvasEditor {
       if (idMatch && idMatch[1]) {
         const fileID = idMatch[1];
         const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
-        console.log('Converted URL:', trimmedUrl, '->', convertedUrl);
+        console.log('Converted URL (drive.google.com/file/d/):', trimmedUrl, '->', convertedUrl);
         return convertedUrl;
       }
     }
@@ -1311,7 +1606,7 @@ class AuraCanvasEditor {
       if (idMatch && idMatch[1]) {
         const fileID = idMatch[1];
         const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
-        console.log('Converted URL:', trimmedUrl, '->', convertedUrl);
+        console.log('Converted URL (drive.google.com/open):', trimmedUrl, '->', convertedUrl);
         return convertedUrl;
       }
     }
@@ -1321,12 +1616,56 @@ class AuraCanvasEditor {
       if (idMatch && idMatch[1]) {
         const fileID = idMatch[1];
         const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
-        console.log('Converted URL:', trimmedUrl, '->', convertedUrl);
+        console.log('Converted URL (docs.google.com/uc):', trimmedUrl, '->', convertedUrl);
         return convertedUrl;
       }
     }
     
+    if (trimmedUrl.includes('drive.google.com/thumbnail?id=')) {
+      const idMatch = trimmedUrl.match(/drive\.google\.com\/thumbnail\?id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        const fileID = idMatch[1];
+        const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
+        console.log('Converted URL (drive.google.com/thumbnail):', trimmedUrl, '->', convertedUrl);
+        return convertedUrl;
+      }
+    }
+    
+    if (trimmedUrl.includes('drive.google.com/uc?id=')) {
+      const idMatch = trimmedUrl.match(/drive\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/);
+      if (idMatch && idMatch[1]) {
+        const fileID = idMatch[1];
+        const convertedUrl = `https://lh3.googleusercontent.com/d/${fileID}=w1600`;
+        console.log('Converted URL (drive.google.com/uc):', trimmedUrl, '->', convertedUrl);
+        return convertedUrl;
+      }
+    }
+    
+    console.log('URL not converted, returning original:', trimmedUrl);
     return trimmedUrl;
+  }
+
+  findImageUrl(item) {
+    if (!item) return '';
+    
+    console.log('findImageUrl called with item:', item);
+    
+    const keys = Object.keys(item);
+    console.log('Available keys:', keys);
+    
+    const imagePatterns = ['image', 'url', 'avatar', 'portrait', 'photo', 'picture', 'pic', 'img', '图片', '照片', '头像', '缩略图', 'thumbnail', 'cover'];
+    const imageKey = keys.find(k => imagePatterns.some(p => k.toLowerCase().includes(p)));
+    
+    console.log('Found image key:', imageKey);
+    
+    if (imageKey && item[imageKey]) {
+      const url = this.convertGoogleDriveUrl(item[imageKey]);
+      console.log('Converted image URL:', url);
+      return url;
+    }
+    
+    console.log('No image URL found in item');
+    return '';
   }
 
   renderCard(item) {
@@ -1384,29 +1723,46 @@ class AuraCanvasEditor {
     let template = this.currentStyle.template.html;
     const dataMapping = this.currentStyle.dataMapping || {};
 
+    console.log('=== renderCardFromTemplate Debug ===');
+    console.log('Input item:', item);
+    console.log('Data mapping:', dataMapping);
+
     for (const [field, possibleKeys] of Object.entries(dataMapping)) {
       let value = '';
+      let foundKey = '';
 
       for (const key of possibleKeys) {
-        if (item[key]) {
+        if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
           value = item[key];
+          foundKey = key;
           break;
         }
       }
 
+      console.log(`Field "${field}":`);
+      console.log('  Possible keys:', possibleKeys);
+      console.log('  Found key:', foundKey);
+      console.log('  Value:', value);
+
       if (!value) {
         const fieldConfig = this.currentStyle.fields?.[field];
         value = fieldConfig?.default || '';
+        console.log('  Using default value:', value);
       }
 
       if (field === 'image' && value) {
+        const originalUrl = value;
         value = this.convertGoogleDriveUrl(value);
+        console.log('  Image conversion:');
+        console.log('    Original:', originalUrl);
+        console.log('    Converted:', value);
       }
 
       const regex = new RegExp(`{{${field}}}`, 'g');
       template = template.replace(regex, value);
     }
 
+    console.log('Final template length:', template.length);
     template = template.replace(/<img\s+/g, '<img crossorigin="anonymous" ');
 
     return template;
@@ -1434,7 +1790,10 @@ class AuraCanvasEditor {
       description: '.card p',
       price: '.card .price',
       badge: '.card .badge',
-      button: '.card button'
+      button: '.card button',
+      author: '.card .author-name',
+      role: '.card .author-role',
+      testimonialText: '.card .testimonial-text'
     };
 
     for (const [styleType, selector] of Object.entries(styleSelectors)) {
@@ -1573,6 +1932,19 @@ class AuraCanvasEditor {
           border-radius: 2px;
           font-weight: 500;
         }
+        .tally-section {
+          position: relative;
+          border: 2px dashed #10b981;
+          background: rgba(16, 185, 129, 0.02);
+          border-radius: 4px;
+        }
+        .tally-section .section-label {
+          background: #10b981;
+        }
+        .tally-section iframe {
+          width: 100%;
+          border: none;
+        }
       </style>`;
     }
 
@@ -1594,10 +1966,50 @@ class AuraCanvasEditor {
 
     this.sections.forEach(section => {
       if (section.visible) {
-        if (section.gridEnabled) {
-          html += `<div class="grid-container">`;
+        if (section.type === 'tally') {
+          const config = section.config || {};
+          const width = config.width || 1200;
+          const padding = config.padding || { top: 60, bottom: 60, left: 20, right: 20 };
+          
+          const embedUrl = section.url;
+          const formId = embedUrl.match(/\/embed\/([a-zA-Z0-9]+)/)?.[1] || '';
+          
+          html += `<div class="tally-section" style="
+            max-width: ${width}px;
+            margin: 0 auto;
+            padding: ${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px;
+          ">`;
+          html += `<div class="section-label">${section.name}</div>`;
+          html += `<iframe 
+            src="${embedUrl}" 
+            data-tally-embed="${formId}"
+            data-tally-width="100%"
+            data-tally-auto-height="true"
+            title="${section.name}" 
+            style="width: 100%; height: 600px; border: none; background: transparent;"
+            frameborder="0"
+            marginheight="0"
+            marginwidth="0"
+            loading="lazy"
+          ></iframe>`;
+          html += `</div>`;
+        } else if (section.gridEnabled) {
+          const sectionGridColumns = section.gridColumns || this.gridConfig.columns || 4;
+          const sectionGridGap = section.gridGap || this.gridConfig.gap || 24;
+          const sectionGridMaxWidth = section.gridMaxWidth || this.gridConfig.maxWidth || 1200;
+          
+          html += `<div class="grid-container" style="
+            display: grid;
+            grid-template-columns: repeat(${sectionGridColumns}, 1fr);
+            gap: ${sectionGridGap}px;
+            max-width: ${sectionGridMaxWidth}px;
+            margin: 0 auto;
+            padding: 20px;
+          ">`;
           if (this.sheetData.length > 0) {
-            this.sheetData.forEach(item => {
+            const cardLimit = section.gridCardLimit || this.gridConfig.cardLimit || 0;
+            const dataToRender = cardLimit > 0 ? this.sheetData.slice(0, cardLimit) : this.sheetData;
+            dataToRender.forEach(item => {
               html += `<div class="card">${this.renderCard(item)}</div>`;
             });
           } else {
@@ -1694,63 +2106,120 @@ class AuraCanvasEditor {
   }
 
   async loadStyleSheets() {
-    const url = document.getElementById('styleSheetUrl').value;
-    if (!url) {
-      this.showToast('Please enter a style sheet URL', 'error');
-      return;
-    }
+    await this.loadLocalStyles();
+  }
+
+  async loadLocalStyles() {
+    const styleFiles = [
+      { name: 'Minimal Card', file: 'style/minimal-card.json' },
+      { name: 'Minimal Testimonial Card', file: 'style/testimonal.json' }
+    ];
 
     try {
-      this.showToast('Loading style sheets...', 'info');
-      
-      const spreadsheetId = this.extractSpreadsheetId(url);
-      if (!spreadsheetId) {
-        throw new Error('Invalid Google Sheets URL');
+      this.styleSets = [];
+      for (const styleInfo of styleFiles) {
+        const response = await fetch(styleInfo.file);
+        if (!response.ok) continue;
+        const styleSet = await response.json();
+        styleSet.isNewFormat = true;
+        styleSet.cardBg = styleSet.cardStyle?.bg || '#ffffff';
+        styleSet.cardText = styleSet.cardStyle?.text || '#1f2937';
+        styleSet.cardBorder = styleSet.cardStyle?.border || '#e5e7eb';
+        styleSet.cardRadius = styleSet.cardStyle?.radius || 12;
+        styleSet.cardPadding = styleSet.cardStyle?.padding || 16;
+        styleSet.cardShadow = styleSet.cardStyle?.shadow || 'md';
+        this.styleSets.push(styleSet);
       }
 
-      const sheets = await this.connector.listSheets(spreadsheetId);
-      
-      const select = document.getElementById('styleSheetName');
-      select.innerHTML = '<option value="">-- Select Style --</option>';
-      
-      sheets.forEach(sheet => {
-        const option = document.createElement('option');
-        option.value = sheet;
-        option.textContent = sheet;
-        select.appendChild(option);
-      });
-
-      this.styleSpreadsheetId = spreadsheetId;
-      this.showToast(`Found ${sheets.length} style sheets`, 'success');
+      this.renderStyleSelect();
     } catch (error) {
-      console.error('Failed to load style sheets:', error);
-      this.showToast('Failed to load style sheets: ' + error.message, 'error');
+      console.error('Failed to load local styles:', error);
+      this.showToast('Failed to load local styles: ' + error.message, 'error');
     }
   }
 
-  async loadSelectedStyle() {
-    const sheetName = document.getElementById('styleSheetName').value;
-    if (!sheetName || !this.styleSpreadsheetId) {
+  renderStyleSelect() {
+    const styleSelect = document.getElementById('styleSelect');
+    if (!styleSelect) return;
+
+    styleSelect.innerHTML = '<option value="">Choose a style...</option>';
+    this.styleSets.forEach(styleSet => {
+      const option = document.createElement('option');
+      option.value = styleSet.id;
+      option.textContent = styleSet.name;
+      styleSelect.appendChild(option);
+    });
+  }
+
+  async loadLocalStyle() {
+    const styleId = document.getElementById('styleSelect').value;
+    if (!styleId) {
+      this.showToast('Please select a style', 'error');
       return;
     }
 
     try {
-      this.showToast('Loading style from sheet: ' + sheetName, 'info');
-      
-      const data = await this.connector.readSheet(this.styleSpreadsheetId, sheetName);
-      if (!data || data.length === 0) {
-        throw new Error('No data found in sheet');
+      const styleSet = this.styleSets.find(s => s.id === styleId);
+      if (!styleSet) {
+        throw new Error('Style not found');
       }
 
-      const styleSet = this.parseStyleFromSheet(data);
-      
-      this.styleSets = [styleSet];
+      console.log('=== Loading Style ===');
+      console.log('Style ID:', styleId);
+      console.log('Style name:', styleSet.name);
+      console.log('Current sheet data count:', this.sheetData.length);
+      console.log('Sections count:', this.sections.length);
+
       this.currentStyle = styleSet;
-      
-      this.renderStyleSets();
+
+      let gridSection = this.sections.find(s => s.gridEnabled);
+      if (gridSection) {
+        console.log('Found grid section:', gridSection.id);
+        gridSection.styleApplied = true;
+        gridSection.styleSetId = styleSet.id;
+        if (styleSet.grid) {
+          gridSection.gridColumns = styleSet.grid.columns;
+          gridSection.gridGap = styleSet.grid.gap;
+          gridSection.gridMinWidth = styleSet.grid.minWidth;
+          gridSection.gridMaxWidth = styleSet.grid.maxWidth;
+          if (styleSet.grid.cardLimit !== undefined) {
+            gridSection.gridCardLimit = styleSet.grid.cardLimit;
+          }
+        }
+        this.syncGridControls(gridSection);
+      } else {
+        console.log('No grid section found, creating one automatically...');
+        gridSection = {
+          id: Date.now(),
+          name: 'Grid Section',
+          content: '',
+          className: 'grid-section',
+          visible: true,
+          gridEnabled: true,
+          gridColumns: styleSet.grid?.columns || this.gridConfig.columns || 4,
+          gridGap: styleSet.grid?.gap || this.gridConfig.gap || 24,
+          gridMinWidth: styleSet.grid?.minWidth || this.gridConfig.minWidth || 280,
+          gridMaxWidth: styleSet.grid?.maxWidth || this.gridConfig.maxWidth || 1440,
+          gridCardLimit: styleSet.grid?.cardLimit ?? this.gridConfig.cardLimit ?? 0,
+          styleApplied: true,
+          styleSetId: styleSet.id
+        };
+        this.sections.push(gridSection);
+        console.log('Grid section created, ID:', gridSection.id);
+        this.syncGridControls(gridSection);
+      }
+
       this.renderStylePreview(styleSet);
-      
-      this.showToast('Style loaded successfully: ' + styleSet.name, 'success');
+      this.renderPreview();
+
+      if (gridSection) {
+        console.log('Switching to sections tab to show preview');
+        this.switchTab('sections');
+      } else {
+        this.switchTab('styles');
+      }
+
+      this.showToast('Style applied successfully: ' + styleSet.name, 'success');
     } catch (error) {
       console.error('Failed to load style:', error);
       this.showToast('Failed to load style: ' + error.message, 'error');
@@ -1781,9 +2250,34 @@ class AuraCanvasEditor {
     return styleSet;
   }
 
+  getPreviewData(styleSet) {
+    const fields = styleSet.fields || {};
+    const isTestimonial = styleSet.id.includes('testimonial');
+    
+    return {
+      image: fields.image?.default || (isTestimonial 
+        ? 'https://via.placeholder.com/60x60/cccccc/000000?text=Client'
+        : 'https://via.placeholder.com/400x400/1f2937/ffffff?text=Product'),
+      name: fields.name?.default || (isTestimonial ? 'Lydia Chen' : 'Product Name'),
+      description: fields.description?.default || (isTestimonial 
+        ? 'ARKAL transformed our space with clear vision and thoughtful design. Every detail felt intentional.'
+        : 'Product description text'),
+      price: fields.price?.default || '$99',
+      category: fields.category?.default || 'Category',
+      badge: fields.badge?.default || '',
+      buttonText: fields.buttonText?.default || 'Buy Now',
+      author: fields.author?.default || 'Lydia Chen',
+      role: fields.role?.default || 'Director, Arcadia Builders',
+      title: fields.title?.default || (isTestimonial ? 'Client Stories' : 'Title')
+    };
+  }
+
   renderStylePreview(styleSet) {
     const previewContainer = document.getElementById('stylePreview');
-    if (!previewContainer) return;
+    if (!previewContainer) {
+      console.warn('stylePreview container not found');
+      return;
+    }
 
     let previewHtml = '';
 
@@ -1793,32 +2287,38 @@ class AuraCanvasEditor {
       if (previewData && styleSet.template.html) {
         const template = styleSet.template.html;
         const css = styleSet.template.css || '';
-        const bg = styleSet.cardBg;
-        const text = styleSet.cardText;
-        const border = styleSet.cardBorder;
-        const radius = styleSet.radius;
-        const padding = styleSet.padding;
-        const shadow = styleSet.cardShadow || 'md';
-        const shadowValue = this.getShadowValue(shadow);
-
-        const dataMapping = styleSet.dataMapping || {};
+        const cardStyle = styleSet.cardStyle || {};
+        const bg = cardStyle.bg || '#ffffff';
+        const text = cardStyle.text || '#1f2937';
+        const border = cardStyle.border || '#e5e7eb';
+        const radius = cardStyle.radius || 12;
+        const padding = cardStyle.padding || 16;
+        const shadow = cardStyle.shadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
         const textStyles = styleSet.textStyles || {};
         
         let textStylesCSS = '';
         for (const [field, style] of Object.entries(textStyles)) {
-          textStylesCSS += `.${field}-style { ${style} }`;
+          const cssVars = [
+            `--${field}-font-size: ${style.fontSize}px`,
+            `--${field}-font-weight: ${style.fontWeight}`,
+            `--${field}-color: ${style.color}`,
+            `--${field}-line-height: ${style.lineHeight}`,
+            `--${field}-letter-spacing: ${style.letterSpacing}px`,
+            `--${field}-text-align: ${style.textAlign}`,
+            `--${field}-text-transform: ${style.textTransform}`
+          ];
+          textStylesCSS += cssVars.join('; ') + '; ';
         }
 
         let filledTemplate = template;
-        for (const [key, possibleKeys] of Object.entries(dataMapping)) {
-          const actualKey = possibleKeys.find(k => previewData[k] !== undefined);
-          let value = actualKey ? previewData[actualKey] : '';
+        for (const key in previewData) {
+          let value = previewData[key];
           
           if (key === 'image' && value) {
             value = this.convertGoogleDriveUrl(value);
           }
           
-          filledTemplate = filledTemplate.replace(new RegExp(`{${key}}`, 'g'), value || '');
+          filledTemplate = filledTemplate.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
         }
 
         previewHtml = `
@@ -1830,7 +2330,7 @@ class AuraCanvasEditor {
                 --card-border: ${border};
                 --card-radius: ${radius}px;
                 --card-padding: ${padding}px;
-                --card-shadow: ${shadowValue};
+                --card-shadow: ${shadow};
                 ${textStylesCSS}
               }
               ${css}
@@ -1845,24 +2345,32 @@ class AuraCanvasEditor {
   }
 
   addTallySection() {
-    const url = document.getElementById('tallyUrl').value;
+    const url = document.getElementById('tallyUrl').value.trim();
     const width = parseInt(document.getElementById('tallyWidth').value) || 1200;
     const paddingTop = parseInt(document.getElementById('tallyPaddingTop').value) || 60;
     const paddingBottom = parseInt(document.getElementById('tallyPaddingBottom').value) || 60;
     const paddingLeft = parseInt(document.getElementById('tallyPaddingLeft').value) || 20;
     const paddingRight = parseInt(document.getElementById('tallyPaddingRight').value) || 20;
 
+    console.log('=== Adding Tally Section ===');
+    console.log('Input URL:', url);
+    console.log('URL type:', typeof url);
+
     if (!url) {
       this.showToast('Please enter a Tally shared link', 'error');
       return;
     }
 
-    const embedUrl = url.replace('https://tally.so/', 'https://tally.so/embed/');
-    
+    const embedUrl = this.normalizeTallyUrl(url);
+    console.log('Final embed URL:', embedUrl);
+    console.log('Config:', { width, padding: { top: paddingTop, bottom: paddingBottom, left: paddingLeft, right: paddingRight } });
+
     const section = {
       id: Date.now(),
+      name: 'Tally Form',
       type: 'tally',
       url: embedUrl,
+      visible: true,
       config: {
         width: Math.min(Math.max(width, 320), 1440),
         padding: {
@@ -1875,12 +2383,40 @@ class AuraCanvasEditor {
     };
 
     this.sections.push(section);
+    console.log('Sections count after adding Tally:', this.sections.length);
+    console.log('All sections:', JSON.stringify(this.sections, null, 2));
+
+    this.switchTab('sections');
     this.renderSections();
+    this.renderPreview();
     this.showToast('Tally form section added', 'success');
   }
 
-  loadStyleFiles() {
+  normalizeTallyUrl(url) {
+    if (!url) return url;
+
+    if (url.includes('tally.so/embed/')) {
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+    }
+
+    const rMatch = url.match(/tally\.so\/r\/([a-zA-Z0-9]+)/);
+    if (rMatch && rMatch[1]) {
+      return `https://tally.so/embed/${rMatch[1]}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+    }
+
+    const directMatch = url.match(/tally\.so\/([a-zA-Z0-9]+)/);
+    if (directMatch && directMatch[1]) {
+      return `https://tally.so/embed/${directMatch[1]}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
+    }
+
+    return url;
+  }
+
+  async loadStyleFiles() {
     try {
+      this.styleSets = [];
+
       if (typeof STYLE_SETS !== 'undefined' && STYLE_SETS.length > 0) {
         console.log('Loading style sets from STYLE_SETS constant:', STYLE_SETS.length);
 
@@ -1911,20 +2447,112 @@ class AuraCanvasEditor {
           this.styleSets.push(styleSet);
           console.log(`Loaded style set: ${styleSet.name}`);
         }
-
-        if (this.styleSets.length > 0 && !this.currentStyle) {
-          this.currentStyle = this.styleSets[0];
-        }
-
-        console.log(`Total style sets loaded: ${this.styleSets.length}`);
-        console.log('Style sets:', this.styleSets);
-        this.renderStyleSets();
-      } else {
-        console.error('STYLE_SETS is not defined or empty');
       }
+
+      await this.loadStyleJSONFiles();
+
+      if (this.styleSets.length > 0 && !this.currentStyle) {
+        this.currentStyle = this.styleSets[0];
+      }
+
+      console.log(`Total style sets loaded: ${this.styleSets.length}`);
+      console.log('Style sets:', this.styleSets);
+      this.renderStyleSets();
     } catch (error) {
       console.log('Failed to load style files:', error);
       console.error('Error details:', error);
+    }
+  }
+
+  async loadStyleJSONFiles() {
+    const styleFiles = [
+      'style/card.json',
+      'style/card_style_testimonal.json',
+      'style/minimal-card.json',
+      'style/testimonal.json'
+    ];
+
+    for (const filePath of styleFiles) {
+      try {
+        const response = await fetch(filePath);
+        if (response.ok) {
+          const styleData = await response.json();
+          const isNewFormat = styleData.template && (styleData.template.html || styleData.template.css);
+          
+          let dataMapping = styleData.dataMapping || null;
+          let fields = styleData.fields || {};
+          let template = styleData.template || null;
+
+          if (styleData.data_binding && !dataMapping) {
+            dataMapping = {};
+            fields = {};
+            
+            for (const [key, value] of Object.entries(styleData.data_binding)) {
+              const placeholder = value.replace('{{', '').replace('}}', '');
+              dataMapping[placeholder] = [placeholder, key];
+              fields[placeholder] = {
+                required: true,
+                default: ''
+              };
+            }
+            
+            if (styleData.layout) {
+              const cardRadius = styleData.layout.padding || 24;
+              template = {
+                html: `<div class="card-inner" style="display: flex; gap: ${styleData.layout.gap || 24}px; padding: ${styleData.layout.padding || 24}px; background: ${styleData.style?.background || '#ffffff'}; border-radius: ${styleData.style?.borderRadius || cardRadius}px; border: ${styleData.style?.border || '1px solid rgba(0,0,0,0.08)'};">` +
+                  `<div style="flex: ${styleData.columns?.[0]?.widthPercent || 38}%;">` +
+                    `<div style="font-size: 14px; font-weight: 500; color: rgba(0,0,0,0.72); margin-bottom: 18px;">Client Stories</div>` +
+                    `<div style="font-family: ui-serif, Georgia, serif; font-size: 44px; line-height: 1.08; color: #111111; margin-bottom: 18px;">{{review}}</div>` +
+                    `<div style="font-size: 16px; font-weight: 600; color: #111111;">{{name}}</div>` +
+                    `<div style="font-size: 14px; font-weight: 500; color: rgba(0,0,0,0.62);">{{position}}</div>` +
+                  `</div>` +
+                  `<div style="flex: ${styleData.columns?.[1]?.widthPercent || 62}%;">` +
+                    `<img src="{{image_url}}" alt="{{name}}" style="width: 100%; height: 100%; min-height: ${styleData.layout?.minHeight || 420}px; object-fit: cover; border-radius: ${styleData.style?.borderRadius || 18}px;">` +
+                  `</div>` +
+                `</div>`,
+                css: ''
+              };
+              
+              if (!fields['review']) fields['review'] = { required: true, default: 'Amazing experience!' };
+              if (!fields['name']) fields['name'] = { required: true, default: 'Client Name' };
+              if (!fields['position']) fields['position'] = { required: true, default: 'Position' };
+              if (!fields['image_url']) fields['image_url'] = { required: true, default: 'https://via.placeholder.com/600x400' };
+            }
+          }
+
+          const styleSet = {
+            id: styleData.id || Date.now() + Math.random(),
+            name: styleData.name || styleData.type || 'Untitled Style',
+            description: styleData.description || '',
+            cardBg: styleData.cardBg || styleData.cardStyle?.bg || styleData.style?.background || '#ffffff',
+            cardText: styleData.cardText || styleData.cardStyle?.text || styleData.style?.color || '#1f2937',
+            cardBorder: styleData.cardBorder || styleData.cardStyle?.border || styleData.style?.border || '#e5e7eb',
+            cardAccent: styleData.cardAccent || styleData.fields?.price?.color || '#7c2bee',
+            cardRadius: styleData.cardRadius || styleData.cardStyle?.radius || styleData.style?.borderRadius || 12,
+            cardPadding: styleData.cardPadding || styleData.cardStyle?.padding || styleData.layout?.padding || 16,
+            cardShadow: styleData.cardShadow || styleData.cardStyle?.shadow || styleData.style?.boxShadow || 'md',
+            fields: fields,
+            hover: styleData.hover || {},
+            template: template,
+            grid: styleData.grid || null,
+            dataMapping: dataMapping,
+            textStyles: styleData.textStyles || {},
+            animation: styleData.animation || { enabled: false },
+            isNewFormat: isNewFormat || template !== null
+          };
+
+          const existingIndex = this.styleSets.findIndex(s => s.id === styleSet.id);
+          if (existingIndex === -1) {
+            this.styleSets.push(styleSet);
+            console.log(`Loaded JSON style: ${styleSet.name} from ${filePath}`);
+          } else {
+            this.styleSets[existingIndex] = styleSet;
+            console.log(`Updated JSON style: ${styleSet.name} from ${filePath}`);
+          }
+        }
+      } catch (error) {
+        console.log(`Failed to load style file ${filePath}:`, error);
+      }
     }
   }
 

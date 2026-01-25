@@ -1,0 +1,138 @@
+{
+  "type": "card",
+  "id": "testimonial_card_standard",
+  "data_binding": {
+    "name": "{{name}}",
+    "position": "{{position}}",
+    "review": "{{review}}",
+    "image_url": "{{image_url}}"
+  },
+  "layout": {
+    "display": "flex",
+    "direction": "row",
+    "gap": 32,
+    "align": "stretch",
+    "justify": "space-between",
+    "padding": 32,
+    "minHeight": 420,
+    "width": "100%",
+    "maxWidth": 1200
+  },
+  "style": {
+    "background": "#FFFFFF",
+    "border": "1px solid rgba(0,0,0,0.08)",
+    "borderRadius": 20,
+    "boxShadow": "0 10px 30px rgba(0,0,0,0.06)"
+  },
+  "columns": [
+    {
+      "id": "left_text",
+      "widthPercent": 38,
+      "layout": {
+        "display": "flex",
+        "direction": "column",
+        "justify": "space-between",
+        "gap": 18
+      },
+      "elements": [
+        {
+          "type": "text",
+          "id": "label",
+          "content": "✦ Client Stories",
+          "style": {
+            "fontFamily": "Inter, system-ui",
+            "fontSize": 14,
+            "fontWeight": 500,
+            "letterSpacing": 0.2,
+            "color": "rgba(0,0,0,0.72)"
+          }
+        },
+        {
+          "type": "text",
+          "id": "review",
+          "content": "{{review}}",
+          "style": {
+            "fontFamily": "ui-serif, Georgia, Times, serif",
+            "fontSize": 44,
+            "lineHeight": 1.08,
+            "fontWeight": 400,
+            "fontStyle": "normal",
+            "color": "#111111"
+          },
+          "decorations": {
+            "quoteMarks": true
+          }
+        },
+        {
+          "type": "group",
+          "id": "footer",
+          "layout": {
+            "display": "flex",
+            "direction": "column",
+            "gap": 6
+          },
+          "elements": [
+            {
+              "type": "text",
+              "id": "name",
+              "content": "{{name}}",
+              "style": {
+                "fontFamily": "Inter, system-ui",
+                "fontSize": 16,
+                "fontWeight": 600,
+                "color": "#111111"
+              }
+            },
+            {
+              "type": "text",
+              "id": "position",
+              "content": "{{position}}",
+              "style": {
+                "fontFamily": "Inter, system-ui",
+                "fontSize": 14,
+                "fontWeight": 500,
+                "color": "rgba(0,0,0,0.62)"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "right_image",
+      "widthPercent": 62,
+      "layout": {
+        "display": "flex",
+        "direction": "column"
+      },
+      "elements": [
+        {
+          "type": "image",
+          "id": "portrait",
+          "src": "{{image_url}}",
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "minHeight": 420,
+            "objectFit": "cover",
+            "borderRadius": 18,
+            "background": "rgba(0,0,0,0.04)"
+          }
+        }
+      ]
+    }
+  ],
+  "responsive_rules": {
+    "breakpoint": 768,
+    "stackOnMobile": true,
+    "mobile": {
+      "direction": "column",
+      "gap": 18,
+      "padding": 20,
+      "leftWidthPercent": 100,
+      "rightWidthPercent": 100,
+      "reviewFontSize": 30,
+      "imageMinHeight": 320
+    }
+  }
+}

@@ -182,7 +182,7 @@ class GoogleSheetsConnector {
       if (cached && cached.timestamp) {
         const age = Date.now() - cached.timestamp;
         if (age < cacheTimeout) {
-          return cached.data;
+          return cached;
         }
       }
     }

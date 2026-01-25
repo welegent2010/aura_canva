@@ -64,11 +64,28 @@ body {
 
 .sidebar {
   width: 320px;
+  min-width: 280px;
+  max-width: 600px;
   background: white;
-  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  resize: horizontal;
+  overflow-x: auto;
+}
+
+.resizer {
+  width: 4px;
+  background: #e5e7eb;
+  cursor: col-resize;
+  transition: background 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+.resizer:hover,
+.resizer.resizing {
+  background: #7c2bee;
 }
 
 .sidebar-tabs {
