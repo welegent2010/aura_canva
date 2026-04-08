@@ -1,0 +1,137 @@
+{
+  "id": "nav-card-style",
+  "name": "Nav / Header Card",
+  "category": "nav",
+  "description": "带导航标签的卡片，适合内容分类展示，支持深浅色模式和RTL",
+  "version": "1.0.0",
+  "thumbnail": "https://via.placeholder.com/300x200/1e3a5f/ffffff?text=Nav+Card",
+
+  "layout": {
+    "type": "card",
+    "width": "auto",
+    "fullWidth": false,
+    "height": "auto"
+  },
+
+  "grid": {
+    "columns": 3,
+    "columnsTablet": 2,
+    "columnsPhone": 1,
+    "gap": 24,
+    "minWidth": 300,
+    "maxWidth": 1280
+  },
+
+  "cardStyle": {
+    "bg": "#ffffff",
+    "bgDark": "#1e293b",
+    "text": "#1e293b",
+    "textDark": "#f1f5f9",
+    "border": "#e2e8f0",
+    "borderDark": "#334155",
+    "radius": 16,
+    "padding": 0,
+    "shadow": "0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05)"
+  },
+
+  "textStyles": {
+    "title": {
+      "fontSize": 18,
+      "fontWeight": 700,
+      "color": "#0f172a",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "subtitle": {
+      "fontSize": 12,
+      "fontWeight": 600,
+      "color": "#64748b",
+      "lineHeight": 1.5,
+      "letterSpacing": 0.5,
+      "textAlign": "left",
+      "textTransform": "uppercase"
+    },
+    "description": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "color": "#64748b",
+      "lineHeight": 1.6,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "badge": {
+      "fontSize": 11,
+      "fontWeight": 600,
+      "color": "#ffffff",
+      "lineHeight": 1.2,
+      "letterSpacing": 0.5,
+      "textAlign": "center",
+      "textTransform": "uppercase"
+    },
+    "button": {
+      "fontSize": 13,
+      "fontWeight": 600,
+      "color": "#3b82f6",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "center",
+      "textTransform": "none"
+    }
+  },
+
+  "animation": {
+    "enabled": true,
+    "hover": {
+      "cardLift": true,
+      "liftDistance": 4,
+      "cardShadow": true,
+      "shadowIntensity": 0.12,
+      "imageZoom": false,
+      "imageScale": 1,
+      "buttonColorChange": false,
+      "buttonHoverColor": ""
+    },
+    "entry": {
+      "enabled": true,
+      "type": "fadeInUp",
+      "duration": 0.35,
+      "delay": 0,
+      "stagger": true
+    }
+  },
+
+  "features": {
+    "darkMode": true,
+    "rtl": true,
+    "responsive": true,
+    "shadow": true
+  },
+
+  "template": {
+    "html": "<div class=\"nav-card\">\n  <div class=\"nav-card-tabs\">\n    <button class=\"nav-tab active\" data-tab=\"overview\">Overview</button>\n    <button class=\"nav-tab\" data-tab=\"details\">Details</button>\n    <button class=\"nav-tab\" data-tab=\"stats\">Stats</button>\n  </div>\n  <div class=\"nav-card-body\">\n    <div class=\"nav-card-image\">\n      <img src=\"{{image}}\" alt=\"{{name}}\" />\n      <span class=\"nav-card-badge\">{{category}}</span>\n    </div>\n    <div class=\"nav-card-content\">\n      <p class=\"nav-card-subtitle\">{{subtitle}}</p>\n      <h3 class=\"nav-card-title\">{{name}}</h3>\n      <p class=\"nav-card-desc\">{{description}}</p>\n      <div class=\"nav-card-footer\">\n        <span class=\"nav-card-price\">{{price}}</span>\n        <a href=\"{{link}}\" class=\"nav-card-btn\">View More →</a>\n      </div>\n    </div>\n  </div>\n</div>",
+    "css": "/* Nav Card - Supports dark mode & RTL */\n.nav-card {\n  background: var(--card-bg, #ffffff);\n  border-radius: var(--card-radius, 16px);\n  border: 1px solid var(--card-border, #e2e8f0);\n  box-shadow: var(--card-shadow, 0 4px 6px -1px rgba(0,0,0,0.07));\n  overflow: hidden;\n  transition: transform 0.25s ease, box-shadow 0.25s ease;\n}\n.nav-card:hover {\n  transform: translateY(-4px);\n  box-shadow: 0 12px 24px -4px rgba(0,0,0,0.12);\n}\n\n/* Nav Tabs */\n.nav-card-tabs {\n  display: flex;\n  gap: 0;\n  border-bottom: 1px solid var(--card-border, #e2e8f0);\n  padding: 0 16px;\n  background: var(--card-bg, #ffffff);\n}\n.nav-tab {\n  padding: 10px 16px;\n  font-size: 13px;\n  font-weight: 500;\n  color: #64748b;\n  background: none;\n  border: none;\n  border-bottom: 2px solid transparent;\n  cursor: pointer;\n  transition: all 0.2s;\n  white-space: nowrap;\n}\n.nav-tab:hover { color: #3b82f6; }\n.nav-tab.active {\n  color: #3b82f6;\n  border-bottom-color: #3b82f6;\n  font-weight: 600;\n}\n\n/* Card Body */\n.nav-card-body {\n  padding: 20px;\n}\n.nav-card-image {\n  position: relative;\n  width: 100%;\n  aspect-ratio: 16/9;\n  overflow: hidden;\n  border-radius: 10px;\n  margin-bottom: 16px;\n}\n.nav-card-image img {\n  width: 100%; height: 100%; object-fit: cover;\n}\n.nav-card-badge {\n  position: absolute;\n  top: 10px;\n  left: 10px;\n  background: #3b82f6;\n  color: #fff;\n  font-size: var(--badge-font-size, 11px);\n  font-weight: 600;\n  padding: 3px 10px;\n  border-radius: 20px;\n  letter-spacing: 0.5px;\n  text-transform: uppercase;\n}\n[dir=\"rtl\"] .nav-card-badge { left: auto; right: 10px; }\n.nav-card-subtitle {\n  font-size: var(--subtitle-font-size, 12px);\n  font-weight: var(--subtitle-font-weight, 600);\n  color: var(--subtitle-color, #64748b);\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n  margin: 0 0 4px;\n}\n.nav-card-title {\n  font-size: var(--title-font-size, 18px);\n  font-weight: var(--title-font-weight, 700);\n  color: var(--title-color, #0f172a);\n  margin: 0 0 8px;\n  line-height: 1.4;\n}\n.nav-card-desc {\n  font-size: var(--description-font-size, 14px);\n  color: var(--description-color, #64748b);\n  line-height: 1.6;\n  margin: 0 0 14px;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.nav-card-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n.nav-card-price {\n  font-size: 20px;\n  font-weight: 700;\n  color: #0f172a;\n}\n.nav-card-btn {\n  font-size: var(--button-font-size, 13px);\n  font-weight: var(--button-font-weight, 600);\n  color: var(--button-color, #3b82f6);\n  text-decoration: none;\n  transition: color 0.2s;\n}\n.nav-card-btn:hover { color: #2563eb; }\n\n/* Dark Mode */\n@media (prefers-color-scheme: dark) {\n  .nav-card { background: #1e293b; border-color: #334155; }\n  .nav-card-tabs { background: #1e293b; border-color: #334155; }\n  .nav-card-title { color: #f1f5f9; }\n  .nav-card-price { color: #f1f5f9; }\n}\n.dark .nav-card, [data-theme=\"dark\"] .nav-card {\n  background: #1e293b;\n  border-color: #334155;\n  color: #f1f5f9;\n}\n.dark .nav-card-tabs, [data-theme=\"dark\"] .nav-card-tabs {\n  background: #1e293b;\n  border-color: #334155;\n}\n.dark .nav-card-title, [data-theme=\"dark\"] .nav-card-title { color: #f1f5f9; }\n.dark .nav-card-price, [data-theme=\"dark\"] .nav-card-price { color: #e2e8f0; }\n\n/* RTL Support */\n[dir=\"rtl\"] .nav-card-footer { flex-direction: row-reverse; }\n[dir=\"rtl\"] .nav-card-subtitle,\n[dir=\"rtl\"] .nav-card-title,\n[dir=\"rtl\"] .nav-card-desc {\n  text-align: right;\n}"
+  },
+
+  "fields": {
+    "image": { "required": true, "default": "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600&h=340&fit=crop" },
+    "name": { "required": true, "default": "Card Title" },
+    "subtitle": { "required": false, "default": "Category" },
+    "description": { "required": false, "default": "Brief description of this content item." },
+    "price": { "required": false, "default": "$49" },
+    "category": { "required": false, "default": "New" },
+    "link": { "required": false, "default": "#" }
+  },
+
+  "dataMapping": {
+    "image": ["image", "url", "cover", "图片", "图片链接"],
+    "name": ["name", "title", "标题", "名称"],
+    "subtitle": ["subtitle", "category", "tag", "分类", "标签"],
+    "description": ["description", "desc", "summary", "描述", "摘要"],
+    "price": ["price", "cost", "价格", "费用"],
+    "category": ["badge", "status", "type", "徽章", "状态"],
+    "link": ["link", "url", "href", "链接"]
+  }
+}

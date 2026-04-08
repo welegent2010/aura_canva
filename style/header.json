@@ -1,0 +1,106 @@
+{
+  "id": "header-nav-section",
+  "name": "Header / Navigation",
+  "category": "header",
+  "description": "响应式页面头部导航区，Logo + 菜单 + CTA按钮，支持sticky、深浅色、RTL",
+  "version": "1.0.0",
+  "thumbnail": "https://via.placeholder.com/600x80/ffffff/0f172a?text=Header+Nav",
+
+  "layout": {
+    "type": "section",
+    "width": "full",
+    "fullWidth": true,
+    "height": "auto"
+  },
+
+  "grid": {
+    "columns": 1,
+    "columnsTablet": 1,
+    "columnsPhone": 1,
+    "gap": 0,
+    "minWidth": 320,
+    "maxWidth": 1440
+  },
+
+  "cardStyle": {
+    "bg": "#ffffff",
+    "bgDark": "#0f172a",
+    "text": "#0f172a",
+    "textDark": "#f1f5f9",
+    "border": "#e2e8f0",
+    "borderDark": "#1e293b",
+    "radius": 0,
+    "padding": 0,
+    "shadow": "0 1px 3px rgba(0,0,0,0.06)"
+  },
+
+  "textStyles": {
+    "title": {
+      "fontSize": 22,
+      "fontWeight": 800,
+      "color": "#0f172a",
+      "lineHeight": 1.2,
+      "letterSpacing": -0.5,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "description": {
+      "fontSize": 14,
+      "fontWeight": 500,
+      "color": "#64748b",
+      "lineHeight": 1.5,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "button": {
+      "fontSize": 14,
+      "fontWeight": 700,
+      "color": "#ffffff",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "center",
+      "textTransform": "none"
+    }
+  },
+
+  "features": {
+    "darkMode": true,
+    "rtl": true,
+    "responsive": true,
+    "sticky": true,
+    "shadow": true
+  },
+
+  "animation": {
+    "enabled": false,
+    "hover": { "cardLift": false, "liftDistance": 0, "cardShadow": false, "shadowIntensity": 0, "imageZoom": false, "imageScale": 1, "buttonColorChange": false, "buttonHoverColor": "" },
+    "entry": { "enabled": false, "type": "none", "duration": 0, "delay": 0, "stagger": false }
+  },
+
+  "template": {
+    "html": "<header class=\"site-header\">\n  <nav class=\"nav-container\">\n    <a href=\"#\" class=\"nav-brand\">{{name}}</a>\n    <button class=\"nav-toggle\" aria-label=\"Toggle menu\">☰</button>\n    <ul class=\"nav-menu\">\n      <li><a href=\"#\">{{nav1}}</a></li>\n      <li><a href=\"#\">{{nav2}}</a></li>\n      <li><a href=\"#\">{{nav3}}</a></li>\n      <li><a href=\"#\">{{nav4}}</a></li>\n    </ul>\n    <div class=\"nav-actions\">\n      <a href=\"#\" class=\"nav-link-ghost\">{{nav_secondary}}</a>\n      <a href=\"{{link}}\" class=\"nav-cta\">{{button_text}}</a>\n    </div>\n  </nav>\n</header>",
+    "css": "/* Header / Navigation Section */\n.site-header {\n  background: var(--card-bg, #ffffff);\n  border-bottom: 1px solid var(--card-border, #e2e8f0);\n  box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.06));\n  position: sticky;\n  top: 0;\n  z-index: 100;\n  width: 100%;\n}\n.nav-container {\n  max-width: 1280px;\n  margin: 0 auto;\n  padding: 0 24px;\n  height: 64px;\n  display: flex;\n  align-items: center;\n  gap: 32px;\n}\n.nav-brand {\n  font-size: var(--title-font-size, 22px);\n  font-weight: var(--title-font-weight, 800);\n  color: var(--title-color, #0f172a);\n  text-decoration: none;\n  letter-spacing: -0.5px;\n  white-space: nowrap;\n  flex-shrink: 0;\n}\n.nav-brand:hover { color: #7c3aed; }\n\n/* Menu */\n.nav-menu {\n  display: flex;\n  list-style: none;\n  margin: 0;\n  padding: 0;\n  gap: 4px;\n  flex: 1;\n}\n.nav-menu li a {\n  display: block;\n  padding: 8px 14px;\n  font-size: var(--description-font-size, 14px);\n  font-weight: var(--description-font-weight, 500);\n  color: var(--description-color, #64748b);\n  text-decoration: none;\n  border-radius: 8px;\n  transition: all 0.2s;\n}\n.nav-menu li a:hover { background: #f8fafc; color: #0f172a; }\n\n/* Actions */\n.nav-actions {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  flex-shrink: 0;\n}\n.nav-link-ghost {\n  font-size: 14px;\n  font-weight: 500;\n  color: #64748b;\n  text-decoration: none;\n  padding: 8px 12px;\n  border-radius: 8px;\n  transition: all 0.2s;\n}\n.nav-link-ghost:hover { background: #f1f5f9; color: #0f172a; }\n.nav-cta {\n  display: inline-block;\n  padding: 9px 20px;\n  background: #7c3aed;\n  color: var(--button-color, #fff);\n  font-size: var(--button-font-size, 14px);\n  font-weight: var(--button-font-weight, 700);\n  border-radius: 50px;\n  text-decoration: none;\n  transition: all 0.2s;\n  box-shadow: 0 2px 8px rgba(124,58,237,0.25);\n}\n.nav-cta:hover { background: #6d28d9; box-shadow: 0 4px 16px rgba(124,58,237,0.35); }\n\n/* Mobile Toggle */\n.nav-toggle {\n  display: none;\n  background: none;\n  border: none;\n  font-size: 22px;\n  cursor: pointer;\n  padding: 4px;\n  color: #64748b;\n  margin-left: auto;\n}\n\n/* Dark Mode */\n.dark .site-header, [data-theme=\"dark\"] .site-header {\n  background: #0f172a;\n  border-color: #1e293b;\n}\n.dark .nav-brand, [data-theme=\"dark\"] .nav-brand { color: #f1f5f9; }\n.dark .nav-menu li a, [data-theme=\"dark\"] .nav-menu li a { color: #94a3b8; }\n.dark .nav-menu li a:hover, [data-theme=\"dark\"] .nav-menu li a:hover { background: #1e293b; color: #e2e8f0; }\n.dark .nav-link-ghost, [data-theme=\"dark\"] .nav-link-ghost { color: #94a3b8; }\n.dark .nav-link-ghost:hover, [data-theme=\"dark\"] .nav-link-ghost:hover { background: #1e293b; color: #e2e8f0; }\n\n/* RTL */\n[dir=\"rtl\"] .nav-container { flex-direction: row-reverse; }\n[dir=\"rtl\"] .nav-menu { flex-direction: row-reverse; }\n[dir=\"rtl\"] .nav-actions { flex-direction: row-reverse; }\n\n/* Responsive */\n@media (max-width: 767px) {\n  .nav-menu, .nav-actions { display: none; }\n  .nav-toggle { display: block; }\n  .nav-container { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 0; }\n  .nav-brand { flex: 1; }\n}"
+  },
+
+  "fields": {
+    "name": { "required": true, "default": "Aura Canvas" },
+    "nav1": { "required": false, "default": "Products" },
+    "nav2": { "required": false, "default": "Solutions" },
+    "nav3": { "required": false, "default": "Pricing" },
+    "nav4": { "required": false, "default": "Blog" },
+    "nav_secondary": { "required": false, "default": "Sign In" },
+    "button_text": { "required": false, "default": "Get Started" },
+    "link": { "required": false, "default": "#" }
+  },
+
+  "dataMapping": {
+    "name": ["name", "brand", "logo_text", "品牌", "logo文字"],
+    "nav1": ["nav1", "menu1", "导航1"],
+    "nav2": ["nav2", "menu2", "导航2"],
+    "nav3": ["nav3", "menu3", "导航3"],
+    "nav4": ["nav4", "menu4", "导航4"],
+    "button_text": ["button_text", "cta", "按钮文字"],
+    "link": ["link", "url", "链接"]
+  }
+}

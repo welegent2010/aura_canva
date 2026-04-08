@@ -1,10 +1,100 @@
 [
   {
+    "id": "minimal-card-style",
     "name": "Minimal Card",
-    "file": "style/minimal-card.json"
+    "category": "product",
+    "file": "style/minimal-card.json",
+    "description": "简洁产品卡，无动画"
   },
   {
-    "name": "Minimal Testimonial Card",
-    "file": "style/testimonal.json"
+    "id": "minimal-testimonial-card",
+    "name": "Minimal Testimonial",
+    "category": "testimonial",
+    "file": "style/testimonal.json",
+    "description": "简洁评价卡，引言+作者"
+  },
+  {
+    "id": "nav-card-style",
+    "name": "Nav / Tab Card",
+    "category": "nav",
+    "file": "style/nav.json",
+    "description": "带导航标签的内容卡，支持深浅色、RTL"
+  },
+  {
+    "id": "hero-cta-style",
+    "name": "Hero / CTA Section",
+    "category": "cta",
+    "file": "style/hero-cta.json",
+    "description": "全宽Hero区块，渐变背景，数据统计展示"
+  },
+  {
+    "id": "testimonial-rating-style",
+    "name": "Testimonial with Rating",
+    "category": "testimonial",
+    "file": "style/testimonial-rating.json",
+    "description": "带星级评分的用户评价卡"
+  },
+  {
+    "id": "blog-card-style",
+    "name": "Blog / Article Card",
+    "category": "blog",
+    "file": "style/blog-card.json",
+    "description": "博客文章卡，封面+分类+作者"
+  },
+  {
+    "id": "feature-card-style",
+    "name": "Feature Card (4×3)",
+    "category": "feature",
+    "file": "style/feature-card.json",
+    "description": "功能特性卡，icon+标题+描述，4列网格"
+  },
+  {
+    "id": "pricing-card-style",
+    "name": "Pricing Card",
+    "category": "pricing",
+    "file": "style/pricing-card.json",
+    "description": "定价方案卡，带特性列表和推荐高亮"
+  },
+  {
+    "id": "header-nav-section",
+    "name": "Header / Navigation",
+    "category": "header",
+    "file": "style/header.json",
+    "description": "响应式导航栏，sticky，支持深浅色、RTL"
+  },
+  {
+    "id": "sidebar-section",
+    "name": "Sidebar",
+    "category": "sidebar",
+    "file": "style/sidebar.json",
+    "description": "侧边栏信息块 / 导航块"
+  },
+  {
+    "id": "form-section",
+    "name": "Form Card",
+    "category": "form",
+    "file": "style/form.json",
+    "description": "联系表单 / 注册表单卡片"
+  },
+  {
+    "id": "table-section",
+    "name": "Table Card",
+    "category": "table",
+    "file": "style/table.json",
+    "description": "表格数据卡片 / 对比表"
+  },
+  {
+    "id": "footer-section",
+    "name": "Footer",
+    "category": "footer",
+    "file": "style/footer.json",
+    "description": "多列页脚，社交链接，深色背景"
+  },
+  {
+    "id": "button-card-style",
+    "name": "Button / CTA Block",
+    "category": "button",
+    "file": "style/button.json",
+    "description": "多款按钮组合展示卡"
   }
 ]

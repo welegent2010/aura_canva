@@ -1,0 +1,129 @@
+{
+  "id": "testimonial-rating-style",
+  "name": "Testimonial with Rating",
+  "category": "testimonial",
+  "description": "带星级评分的用户评价卡片，参考 readymadeui review card 设计，支持深浅色和RTL",
+  "version": "1.0.0",
+  "thumbnail": "https://via.placeholder.com/300x200/f8fafc/1e293b?text=Review+Card",
+
+  "layout": {
+    "type": "card",
+    "width": "auto",
+    "fullWidth": false,
+    "height": "auto"
+  },
+
+  "grid": {
+    "columns": 3,
+    "columnsTablet": 2,
+    "columnsPhone": 1,
+    "gap": 24,
+    "minWidth": 280,
+    "maxWidth": 1200
+  },
+
+  "cardStyle": {
+    "bg": "#ffffff",
+    "bgDark": "#1e293b",
+    "text": "#1e293b",
+    "textDark": "#e2e8f0",
+    "border": "#e2e8f0",
+    "borderDark": "#334155",
+    "radius": 16,
+    "padding": 28,
+    "shadow": "0 4px 20px rgba(0,0,0,0.06)"
+  },
+
+  "textStyles": {
+    "title": {
+      "fontSize": 16,
+      "fontWeight": 600,
+      "color": "#0f172a",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "description": {
+      "fontSize": 15,
+      "fontWeight": 400,
+      "color": "#475569",
+      "lineHeight": 1.7,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "author": {
+      "fontSize": 15,
+      "fontWeight": 600,
+      "color": "#0f172a",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "role": {
+      "fontSize": 13,
+      "fontWeight": 400,
+      "color": "#94a3b8",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    }
+  },
+
+  "animation": {
+    "enabled": true,
+    "hover": {
+      "cardLift": true,
+      "liftDistance": 5,
+      "cardShadow": true,
+      "shadowIntensity": 0.1,
+      "imageZoom": false,
+      "imageScale": 1,
+      "buttonColorChange": false,
+      "buttonHoverColor": ""
+    },
+    "entry": {
+      "enabled": true,
+      "type": "fadeInUp",
+      "duration": 0.4,
+      "delay": 0,
+      "stagger": true
+    }
+  },
+
+  "features": {
+    "darkMode": true,
+    "rtl": true,
+    "responsive": true,
+    "shadow": true,
+    "rating": true
+  },
+
+  "template": {
+    "html": "<div class=\"review-card\">\n  <div class=\"review-header\">\n    <div class=\"review-stars\" aria-label=\"{{rating}} out of 5 stars\">\n      <span class=\"stars-fill\" style=\"width:calc({{rating}} / 5 * 100%)\">★★★★★</span>\n      <span class=\"stars-bg\">★★★★★</span>\n    </div>\n    <span class=\"review-badge\">Verified</span>\n  </div>\n  <blockquote class=\"review-body\">\n    <p class=\"review-title\">{{name}}</p>\n    <p class=\"review-text\">{{description}}</p>\n  </blockquote>\n  <div class=\"review-author\">\n    <img src=\"{{image}}\" alt=\"{{author}}\" class=\"review-avatar\" />\n    <div class=\"review-author-info\">\n      <span class=\"review-name\">{{author}}</span>\n      <span class=\"review-role\">{{role}}</span>\n    </div>\n    <span class=\"review-date\">{{date}}</span>\n  </div>\n</div>",
+    "css": "/* Testimonial Rating Card */\n.review-card {\n  background: var(--card-bg, #ffffff);\n  border-radius: var(--card-radius, 16px);\n  padding: var(--card-padding, 28px);\n  border: 1px solid var(--card-border, #e2e8f0);\n  box-shadow: var(--card-shadow, 0 4px 20px rgba(0,0,0,0.06));\n  display: flex;\n  flex-direction: column;\n  gap: 16px;\n  transition: transform 0.25s ease, box-shadow 0.25s ease;\n}\n.review-card:hover {\n  transform: translateY(-5px);\n  box-shadow: 0 16px 40px rgba(0,0,0,0.10);\n}\n\n/* Stars */\n.review-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n.review-stars {\n  position: relative;\n  display: inline-block;\n  font-size: 18px;\n  line-height: 1;\n}\n.stars-bg {\n  color: #e2e8f0;\n  letter-spacing: 2px;\n}\n.stars-fill {\n  position: absolute;\n  left: 0;\n  top: 0;\n  overflow: hidden;\n  color: #f59e0b;\n  letter-spacing: 2px;\n  white-space: nowrap;\n}\n.review-badge {\n  font-size: 11px;\n  font-weight: 600;\n  color: #059669;\n  background: #d1fae5;\n  padding: 3px 10px;\n  border-radius: 20px;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n\n/* Quote Body */\n.review-body { margin: 0; }\n.review-title {\n  font-size: var(--title-font-size, 16px);\n  font-weight: var(--title-font-weight, 600);\n  color: var(--title-color, #0f172a);\n  margin: 0 0 8px;\n}\n.review-text {\n  font-size: var(--description-font-size, 15px);\n  color: var(--description-color, #475569);\n  line-height: var(--description-line-height, 1.7);\n  margin: 0;\n  font-style: italic;\n}\n\n/* Author */\n.review-author {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding-top: 16px;\n  border-top: 1px solid var(--card-border, #e2e8f0);\n}\n.review-avatar {\n  width: 44px;\n  height: 44px;\n  border-radius: 50%;\n  object-fit: cover;\n  border: 2px solid var(--card-border, #e2e8f0);\n  flex-shrink: 0;\n}\n.review-author-info {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n}\n.review-name {\n  font-size: var(--author-font-size, 15px);\n  font-weight: var(--author-font-weight, 600);\n  color: var(--author-color, #0f172a);\n}\n.review-role {\n  font-size: var(--role-font-size, 13px);\n  color: var(--role-color, #94a3b8);\n}\n.review-date {\n  font-size: 12px;\n  color: #94a3b8;\n  white-space: nowrap;\n}\n\n/* Dark Mode */\n.dark .review-card, [data-theme=\"dark\"] .review-card {\n  background: #1e293b;\n  border-color: #334155;\n  color: #e2e8f0;\n}\n.dark .review-title, [data-theme=\"dark\"] .review-title { color: #f1f5f9; }\n.dark .review-text, [data-theme=\"dark\"] .review-text { color: #94a3b8; }\n.dark .review-name, [data-theme=\"dark\"] .review-name { color: #e2e8f0; }\n.dark .review-author, [data-theme=\"dark\"] .review-author { border-color: #334155; }\n\n/* RTL */\n[dir=\"rtl\"] .review-author { flex-direction: row-reverse; }\n[dir=\"rtl\"] .review-author-info { text-align: right; }\n[dir=\"rtl\"] .review-header { flex-direction: row-reverse; }\n[dir=\"rtl\"] .stars-fill { left: auto; right: 0; }\n[dir=\"rtl\"] .review-title,\n[dir=\"rtl\"] .review-text { text-align: right; }"
+  },
+
+  "fields": {
+    "image": { "required": true, "default": "https://i.pravatar.cc/100?img=1" },
+    "name": { "required": true, "default": "Excellent product experience!" },
+    "description": { "required": true, "default": "This tool has completely transformed how we work. The interface is intuitive and the results are outstanding every time." },
+    "author": { "required": true, "default": "Sarah Chen" },
+    "role": { "required": false, "default": "Product Designer, Figma" },
+    "rating": { "required": false, "default": "5" },
+    "date": { "required": false, "default": "Jan 2026" }
+  },
+
+  "dataMapping": {
+    "image": ["image", "avatar", "photo", "图片", "头像"],
+    "name": ["name", "title", "headline", "标题"],
+    "description": ["description", "quote", "review", "content", "评价", "描述"],
+    "author": ["author", "name", "reviewer", "作者", "姓名"],
+    "role": ["role", "position", "company", "职位", "公司"],
+    "rating": ["rating", "stars", "score", "评分", "星级"],
+    "date": ["date", "time", "日期", "时间"]
+  }
+}

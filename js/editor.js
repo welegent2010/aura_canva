@@ -21,6 +21,8 @@ class AuraCanvasEditor {
       showPlaceholders: true
     };
     this.previewWidth = 'desktop';
+    this.previewTheme = 'light';
+    this.previewDirection = 'ltr';
     this.originalHead = '';
     this.originalHtmlClass = '';
 
@@ -198,6 +200,7 @@ class AuraCanvasEditor {
     if (previewMobileBtn) previewMobileBtn.addEventListener('click', () => this.setPreviewWidth('mobile'));
 
     this.bindGridControls();
+    this.bindStylePanelControls();
   }
 
   bindGridControls() {
@@ -243,6 +246,134 @@ class AuraCanvasEditor {
     }
 
     this.updateGridPreviewInfo();
+  }
+
+  bindStylePanelControls() {
+    const immediateControls = [
+      'styleWidthMode',
+      'styleCustomWidth',
+      'styleMinHeight',
+      'styleShadowSelect',
+      'styleDarkModeToggle',
+      'styleRtlToggle',
+      'styleTitleSize',
+      'styleBodySize',
+      'styleTextColor',
+      'styleAccentColor',
+      'styleContentTitle',
+      'styleContentDescription',
+      'styleContentButton'
+    ];
+
+    immediateControls.forEach((id) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+      const eventName = element.tagName === 'SELECT' || element.type === 'checkbox' || element.type === 'color' ? 'change' : 'input';
+      element.addEventListener(eventName, () => this.applyStylePanelControls());
+      if (eventName !== 'change') {
+        element.addEventListener('change', () => this.applyStylePanelControls());
+      }
+    });
+
+    const categoryFilter = document.getElementById('styleCategoryFilter');
+    if (categoryFilter) {
+      categoryFilter.addEventListener('change', () => this.renderStyleSelect());
+    }
+  }
+
+  getSelectedStyleSet() {
+    const selectedStyleId = document.getElementById('styleSelect')?.value;
+    return this.styleSets.find(s => s.id === selectedStyleId) || this.currentStyle || null;
+  }
+
+  updateStylePanelFromCurrentStyle(style = this.currentStyle) {
+    if (!style) return;
+
+    const layout = style.layout || {};
+    const titleStyle = style.textStyles?.title || {};
+    const descriptionStyle = style.textStyles?.description || {};
+    const overrides = style.contentOverrides || {};
+
+    const setValue = (id, value) => {
+      const element = document.getElementById(id);
+      if (element && value !== undefined && value !== null) {
+        element.value = value;
+      }
+    };
+
+    const setChecked = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.checked = !!value;
+      }
+    };
+
+    setValue('styleWidthMode', layout.width || (layout.fullWidth ? 'full' : 'auto'));
+    setValue('styleCustomWidth', layout.customWidth || this.selectedSection?.cardCustomWidth || 360);
+    setValue('styleMinHeight', layout.minHeight || this.selectedSection?.sectionMinHeight || 0);
+    setValue('styleShadowSelect', style.cardShadow || 'md');
+    setChecked('styleDarkModeToggle', this.previewTheme === 'dark');
+    setChecked('styleRtlToggle', this.previewDirection === 'rtl');
+    setValue('styleTitleSize', titleStyle.fontSize || 18);
+    setValue('styleBodySize', descriptionStyle.fontSize || 14);
+    setValue('styleTextColor', style.cardText || titleStyle.color || '#1f2937');
+    setValue('styleAccentColor', style.cardAccent || '#7c2bee');
+    setValue('styleContentTitle', overrides.name || overrides.title || '');
+    setValue('styleContentDescription', overrides.description || '');
+    setValue('styleContentButton', overrides.button_text || overrides.button || '');
+  }
+
+  applyStylePanelControls() {
+    const style = this.getSelectedStyleSet();
+    if (!style) return;
+
+    style.layout = style.layout || {};
+    style.textStyles = style.textStyles || {};
+    style.textStyles.title = style.textStyles.title || {};
+    style.textStyles.description = style.textStyles.description || {};
+    style.contentOverrides = style.contentOverrides || {};
+
+    const widthMode = document.getElementById('styleWidthMode')?.value || 'auto';
+    const customWidth = parseInt(document.getElementById('styleCustomWidth')?.value, 10) || 360;
+    const minHeight = parseInt(document.getElementById('styleMinHeight')?.value, 10) || 0;
+    const titleSize = parseInt(document.getElementById('styleTitleSize')?.value, 10) || style.textStyles.title.fontSize || 18;
+    const bodySize = parseInt(document.getElementById('styleBodySize')?.value, 10) || style.textStyles.description.fontSize || 14;
+    const textColor = document.getElementById('styleTextColor')?.value || style.cardText || '#1f2937';
+    const accentColor = document.getElementById('styleAccentColor')?.value || style.cardAccent || '#7c2bee';
+    const shadow = document.getElementById('styleShadowSelect')?.value || style.cardShadow || 'md';
+
+    style.layout.width = widthMode;
+    style.layout.fullWidth = widthMode === 'full';
+    style.layout.customWidth = customWidth;
+    style.layout.minHeight = minHeight;
+    style.cardShadow = shadow;
+    style.cardText = textColor;
+    style.cardAccent = accentColor;
+    style.textStyles.title.fontSize = titleSize;
+    style.textStyles.description.fontSize = bodySize;
+    style.textStyles.title.color = textColor;
+    style.textStyles.description.color = textColor;
+
+    style.contentOverrides.name = document.getElementById('styleContentTitle')?.value?.trim() || '';
+    style.contentOverrides.title = style.contentOverrides.name;
+    style.contentOverrides.description = document.getElementById('styleContentDescription')?.value?.trim() || '';
+    style.contentOverrides.button_text = document.getElementById('styleContentButton')?.value?.trim() || '';
+    style.contentOverrides.button = style.contentOverrides.button_text;
+
+    this.previewTheme = document.getElementById('styleDarkModeToggle')?.checked ? 'dark' : 'light';
+    this.previewDirection = document.getElementById('styleRtlToggle')?.checked ? 'rtl' : 'ltr';
+
+    if (this.selectedSection) {
+      this.selectedSection.cardWidthMode = widthMode;
+      this.selectedSection.cardCustomWidth = customWidth;
+      this.selectedSection.sectionFullWidth = widthMode === 'full';
+      this.selectedSection.sectionMinHeight = minHeight;
+    }
+
+    this.currentStyle = style;
+    this.showStylePreview();
+    this.renderPreview();
+    this.saveData();
   }
 
   applyGridConfig() {
@@ -398,6 +529,7 @@ class AuraCanvasEditor {
     }
     
     this.currentStyle = style;
+    this.updateStylePanelFromCurrentStyle(style);
     
     // Show preview card
     document.getElementById('stylePreviewCard').style.display = 'block';
@@ -1569,7 +1701,8 @@ class AuraCanvasEditor {
       return;
     }
 
-    let html = `<!DOCTYPE html><html${this.originalHtmlClass ? ' class="' + this.originalHtmlClass + '"' : ''}><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">`;
+    const htmlClass = [this.originalHtmlClass, this.previewTheme].filter(Boolean).join(' ').trim();
+    let html = `<!DOCTYPE html><html${htmlClass ? ' class="' + htmlClass + '"' : ''} data-theme="${this.previewTheme}" dir="${this.previewDirection}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">`;
     
     if (this.originalHead) {
       html += this.originalHead;
@@ -1604,10 +1737,17 @@ class AuraCanvasEditor {
           html += `
             .card {
               --card-bg: ${this.currentStyle.cardBg};
+              --card-bg-dark: ${this.currentStyle.cardBgDark || this.currentStyle.cardBg};
               --card-text: ${this.currentStyle.cardText};
+              --card-text-dark: ${this.currentStyle.cardTextDark || this.currentStyle.cardText};
               --card-border: ${this.currentStyle.cardBorder};
               --card-radius: ${this.currentStyle.cardRadius}px;
               --card-padding: ${this.currentStyle.cardPadding}px;
+              --card-shadow: ${this.getShadowValue(this.currentStyle.cardShadow)};
+            }
+            [data-theme="dark"] .card {
+              --card-bg: ${this.currentStyle.cardBgDark || this.currentStyle.cardBg};
+              --card-text: ${this.currentStyle.cardTextDark || this.currentStyle.cardText};
             }
             ${this.generateTextStylesCSS(this.currentStyle.textStyles || {})}
             ${this.generateAnimationCSS(animEnabled, animHover, animEntry)}
@@ -1816,7 +1956,7 @@ class AuraCanvasEditor {
       html += '<script src="https://tally.so/widgets/embed.js"></script>';
     }
     
-    html += '</head><body>';
+    html += '</head><body class="preview-body">';
 
     console.log('=== Rendering Preview Sections ===');
     console.log('Total sections:', this.sections.length);
@@ -1938,11 +2078,18 @@ class AuraCanvasEditor {
             html += `</div>`;
           }
         } else if (section.gridEnabled) {
+          const sectionStyle = section.styleSetId
+            ? this.styleSets.find(s => s.id === section.styleSetId)
+            : this.currentStyle;
           const sectionGridColumns = section.gridColumnsDesktop || section.gridColumns || this.gridConfig.columnsDesktop || 4;
           const sectionGridGap = section.gridGap || this.gridConfig.gap || 24;
           const sectionGridMaxWidth = section.gridMaxWidth || this.gridConfig.maxWidth || 1440;
           const sectionPadding = section.gridSectionPadding || this.gridConfig.sectionPadding || 40;
           const sectionCardLimit = section.gridCardLimit ?? this.gridConfig.cardLimit ?? 0;
+          const sectionMinHeight = section.sectionMinHeight || sectionStyle?.layout?.minHeight || 0;
+          const sectionFullWidth = section.sectionFullWidth || sectionStyle?.layout?.fullWidth || false;
+          const cardWidthMode = section.cardWidthMode || sectionStyle?.layout?.width || 'auto';
+          const cardCustomWidth = section.cardCustomWidth || sectionStyle?.layout?.customWidth || 0;
           const showPlaceholders = section.showPlaceholders !== false;
 
           console.log('=== Rendering Grid Section ===');
@@ -1957,6 +2104,39 @@ class AuraCanvasEditor {
           console.log('Sheet data count:', this.sheetData.length);
           console.log('Current style:', this.currentStyle?.name);
 
+          if (sectionStyle?.layout?.type === 'section') {
+            const previousStyle = this.currentStyle;
+            this.currentStyle = sectionStyle;
+            const sectionData = this.sheetData[0] || {};
+            const renderedSection = this.renderCard(sectionData);
+            this.currentStyle = previousStyle;
+
+            html += `<div class="section-framework" style="
+              position: relative;
+              border: 2px dashed #3b82f6;
+              padding: ${sectionFullWidth ? 0 : sectionPadding}px;
+              margin: 8px 0;
+              background: rgba(59, 130, 246, 0.02);
+              border-radius: 4px;
+              min-height: ${sectionMinHeight}px;
+            ">`;
+            html += `<div class="section-label" style="
+              position: absolute;
+              top: -10px;
+              left: 12px;
+              background: #3b82f6;
+              color: white;
+              padding: 2px 8px;
+              font-size: 12px;
+              border-radius: 2px;
+              font-weight: 500;
+              z-index: 2;
+            ">${section.name} · ${sectionStyle.name}</div>`;
+            html += renderedSection;
+            html += `</div>`;
+            return;
+          }
+
           html += `<div class="section-framework" style="
             position: relative;
             border: 2px dashed #3b82f6;
@@ -1964,6 +2144,7 @@ class AuraCanvasEditor {
             margin: 8px 0;
             background: rgba(59, 130, 246, 0.02);
             border-radius: 4px;
+            min-height: ${sectionMinHeight}px;
           ">`;
           html += `<div class="section-label" style="
             position: absolute;
@@ -1996,7 +2177,19 @@ class AuraCanvasEditor {
               if (index < 10) {
                 console.log(`Card ${index + 1} data:`, item);
               }
-              html += `<div class="card" data-card-index="${index}" onclick="window.parent.postMessage({type:'cardClick', index:${index}, data:${JSON.stringify(item).replace(/"/g, '&quot;')}}, '*')" style="cursor: pointer;">${this.renderCard(item)}</div>`;
+              const cardStyle = [
+                'cursor: pointer;'
+              ];
+              if (cardWidthMode === 'custom' && cardCustomWidth > 0) {
+                cardStyle.push(`max-width: ${cardCustomWidth}px; width: 100%; justify-self: center;`);
+              }
+              if (cardWidthMode === 'full') {
+                cardStyle.push('grid-column: 1 / -1; width: 100%;');
+              }
+              if (sectionMinHeight > 0) {
+                cardStyle.push(`min-height: ${sectionMinHeight}px;`);
+              }
+              html += `<div class="card" data-card-index="${index}" onclick="window.parent.postMessage({type:'cardClick', index:${index}, data:${JSON.stringify(item).replace(/"/g, '&quot;')}}, '*')" style="${cardStyle.join(' ')}">${this.renderCard(item)}</div>`;
               cardCount++;
             });
             console.log('Total cards rendered:', cardCount);
@@ -2158,6 +2351,7 @@ class AuraCanvasEditor {
       return this.renderCardFromTemplate(item);
     }
 
+    const overrides = this.currentStyle?.contentOverrides || {};
     const keys = Object.keys(item);
     const nameKey = keys.find(k => k.toLowerCase().includes('name')) || keys[0];
     const descKey = keys.find(k => k.toLowerCase().includes('desc') || k.toLowerCase().includes('description'));
@@ -2170,26 +2364,26 @@ class AuraCanvasEditor {
 
     let html = '';
 
-    if (imageKey && item[imageKey]) {
-      const originalUrl = item[imageKey];
+    if (imageKey && (item[imageKey] || overrides.image)) {
+      const originalUrl = overrides.image || item[imageKey];
       const imageUrl = this.convertGoogleDriveUrl(originalUrl);
       html += `<img src="${imageUrl}" alt="${item[nameKey] || ''}" onerror="this.onerror=null;this.src='https://via.placeholder.com/300x300/7c2bee/ffffff?text=Image+Error';console.error('Image failed to load:', '${originalUrl}');" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; margin-bottom: 12px;">`;
     }
 
-    if (subtitleKey && item[subtitleKey]) {
-      html += `<div class="subtitle">${item[subtitleKey]}</div>`;
+    if (overrides.subtitle || (subtitleKey && item[subtitleKey])) {
+      html += `<div class="subtitle">${overrides.subtitle || item[subtitleKey]}</div>`;
     }
 
-    if (nameKey && item[nameKey]) {
-      html += `<h3>${item[nameKey]}</h3>`;
+    if (overrides.name || (nameKey && item[nameKey])) {
+      html += `<h3>${overrides.name || item[nameKey]}</h3>`;
     }
 
-    if (priceKey && item[priceKey]) {
-      html += `<div class="price">${item[priceKey]}</div>`;
+    if (overrides.price || (priceKey && item[priceKey])) {
+      html += `<div class="price">${overrides.price || item[priceKey]}</div>`;
     }
 
-    if (descKey && item[descKey]) {
-      html += `<p>${item[descKey]}</p>`;
+    if (overrides.description || (descKey && item[descKey])) {
+      html += `<p>${overrides.description || item[descKey]}</p>`;
     }
 
     if (tagsKey && item[tagsKey]) {
@@ -2207,20 +2401,23 @@ class AuraCanvasEditor {
   renderCardFromTemplate(item) {
     let template = this.currentStyle.template.html;
     const dataMapping = this.currentStyle.dataMapping || {};
+    const overrides = this.currentStyle.contentOverrides || {};
 
     console.log('=== renderCardFromTemplate Debug ===');
     console.log('Input item:', item);
     console.log('Data mapping:', dataMapping);
 
     for (const [field, possibleKeys] of Object.entries(dataMapping)) {
-      let value = '';
+      let value = overrides[field] || '';
       let foundKey = '';
 
-      for (const key of possibleKeys) {
-        if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
-          value = item[key];
-          foundKey = key;
-          break;
+      if (!value) {
+        for (const key of possibleKeys) {
+          if (item[key] !== undefined && item[key] !== null && item[key] !== '') {
+            value = item[key];
+            foundKey = key;
+            break;
+          }
         }
       }
 
@@ -2249,6 +2446,7 @@ class AuraCanvasEditor {
 
     console.log('Final template length:', template.length);
     template = template.replace(/<img\s+/g, '<img crossorigin="anonymous" ');
+    template = template.replace(/{{[^}]+}}/g, '');
 
     return template;
   }
@@ -2261,6 +2459,9 @@ class AuraCanvasEditor {
       lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
       xl: '0 20px 25px rgba(0, 0, 0, 0.15)'
     };
+    if (typeof shadow === 'string' && (shadow.includes('rgba') || shadow.includes('rgb') || shadow.includes('px'))) {
+      return shadow;
+    }
     return shadows[shadow] || shadows.md;
   }
 
@@ -2551,6 +2752,8 @@ class AuraCanvasEditor {
       styleSets: this.styleSets,
       currentStyleId: this.currentStyle?.id,
       gridConfig: this.gridConfig,
+      previewTheme: this.previewTheme,
+      previewDirection: this.previewDirection,
       originalHead: this.originalHead,
       originalHtmlClass: this.originalHtmlClass
     };
@@ -2566,6 +2769,8 @@ class AuraCanvasEditor {
         this.styleSets = data.styleSets || [];
         this.currentStyle = this.styleSets.find(s => s.id === data.currentStyleId) || null;
         this.gridConfig = data.gridConfig || this.gridConfig;
+        this.previewTheme = data.previewTheme || 'light';
+        this.previewDirection = data.previewDirection || 'ltr';
         this.originalHead = data.originalHead || '';
         this.originalHtmlClass = data.originalHtmlClass || '';
         
@@ -2593,6 +2798,7 @@ class AuraCanvasEditor {
         
         this.renderSections();
         this.renderStyleSets();
+        this.updateStylePanelFromCurrentStyle(this.currentStyle);
       } catch (error) {
         console.error('Failed to load saved data:', error);
       }
@@ -2666,10 +2872,22 @@ class AuraCanvasEditor {
             console.log(`Skipping duplicate style ID: ${styleSet.id}`);
             continue;
           }
+
+          styleSet.category = styleSet.category || styleInfo.category || 'general';
+          styleSet.layout = {
+            type: styleSet.layout?.type || 'card',
+            width: styleSet.layout?.width || 'auto',
+            fullWidth: styleSet.layout?.fullWidth || false,
+            customWidth: styleSet.layout?.customWidth || 0,
+            minHeight: styleSet.layout?.minHeight || 0,
+            height: styleSet.layout?.height || 'auto'
+          };
           styleSet.isNewFormat = true;
           if (styleSet.cardStyle) {
             styleSet.cardBg = styleSet.cardStyle.bg || '#ffffff';
+            styleSet.cardBgDark = styleSet.cardStyle.bgDark || styleSet.cardStyle.bg || '#111827';
             styleSet.cardText = styleSet.cardStyle.text || '#1f2937';
+            styleSet.cardTextDark = styleSet.cardStyle.textDark || styleSet.cardStyle.text || '#f9fafb';
             styleSet.cardBorder = styleSet.cardStyle.border || '#e5e7eb';
             styleSet.cardRadius = styleSet.cardStyle.radius || 12;
             styleSet.cardPadding = styleSet.cardStyle.padding || 16;
@@ -2677,7 +2895,9 @@ class AuraCanvasEditor {
           } else {
             // Set default values if no cardStyle defined
             styleSet.cardBg = '#ffffff';
+            styleSet.cardBgDark = '#111827';
             styleSet.cardText = '#1f2937';
+            styleSet.cardTextDark = '#f9fafb';
             styleSet.cardBorder = '#e5e7eb';
             styleSet.cardRadius = 12;
             styleSet.cardPadding = 16;
@@ -2703,11 +2923,19 @@ class AuraCanvasEditor {
     const styleSelect = document.getElementById('styleSelect');
     if (!styleSelect) return;
 
+    const category = document.getElementById('styleCategoryFilter')?.value || 'all';
+    const filteredStyles = category === 'all'
+      ? this.styleSets
+      : this.styleSets.filter(styleSet => styleSet.category === category);
+
     styleSelect.innerHTML = '<option value="">Choose a style...</option>';
-    this.styleSets.forEach(styleSet => {
+    filteredStyles.forEach(styleSet => {
       const option = document.createElement('option');
       option.value = styleSet.id;
-      option.textContent = styleSet.name;
+      option.textContent = `${styleSet.name} · ${styleSet.category || 'general'}`;
+      if (this.currentStyle && this.currentStyle.id === styleSet.id) {
+        option.selected = true;
+      }
       styleSelect.appendChild(option);
     });
   }
@@ -2740,6 +2968,9 @@ class AuraCanvasEditor {
         gridSection.styleSetId = styleSet.id;
         if (styleSet.grid) {
           gridSection.gridColumns = styleSet.grid.columns;
+          gridSection.gridColumnsDesktop = styleSet.grid.columns || gridSection.gridColumnsDesktop || 4;
+          gridSection.gridColumnsTablet = styleSet.grid.columnsTablet || gridSection.gridColumnsTablet || 2;
+          gridSection.gridColumnsPhone = styleSet.grid.columnsPhone || gridSection.gridColumnsPhone || 1;
           gridSection.gridGap = styleSet.grid.gap;
           gridSection.gridMinWidth = styleSet.grid.minWidth;
           gridSection.gridMaxWidth = styleSet.grid.maxWidth;
@@ -2747,6 +2978,10 @@ class AuraCanvasEditor {
             gridSection.gridCardLimit = styleSet.grid.cardLimit;
           }
         }
+        gridSection.cardWidthMode = styleSet.layout?.width || 'auto';
+        gridSection.cardCustomWidth = styleSet.layout?.customWidth || 0;
+        gridSection.sectionFullWidth = !!styleSet.layout?.fullWidth;
+        gridSection.sectionMinHeight = styleSet.layout?.minHeight || 0;
         this.syncGridControls(gridSection);
       } else {
         console.log('No grid section found, creating one automatically...');
@@ -2758,10 +2993,17 @@ class AuraCanvasEditor {
           visible: true,
           gridEnabled: true,
           gridColumns: styleSet.grid?.columns || this.gridConfig.columns || 4,
+          gridColumnsDesktop: styleSet.grid?.columns || this.gridConfig.columnsDesktop || 4,
+          gridColumnsTablet: styleSet.grid?.columnsTablet || this.gridConfig.columnsTablet || 2,
+          gridColumnsPhone: styleSet.grid?.columnsPhone || this.gridConfig.columnsPhone || 1,
           gridGap: styleSet.grid?.gap || this.gridConfig.gap || 24,
           gridMinWidth: styleSet.grid?.minWidth || this.gridConfig.minWidth || 280,
           gridMaxWidth: styleSet.grid?.maxWidth || this.gridConfig.maxWidth || 1440,
           gridCardLimit: styleSet.grid?.cardLimit ?? this.gridConfig.cardLimit ?? 0,
+          cardWidthMode: styleSet.layout?.width || 'auto',
+          cardCustomWidth: styleSet.layout?.customWidth || 0,
+          sectionFullWidth: !!styleSet.layout?.fullWidth,
+          sectionMinHeight: styleSet.layout?.minHeight || 0,
           styleApplied: true,
           styleSetId: styleSet.id
         };
@@ -2770,6 +3012,8 @@ class AuraCanvasEditor {
         this.syncGridControls(gridSection);
       }
 
+
+  this.updateStylePanelFromCurrentStyle(styleSet);
       this.renderStylePreview(styleSet);
       this.renderPreview();
 

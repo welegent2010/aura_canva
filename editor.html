@@ -259,12 +259,117 @@
           <div class="panel" id="styles-panel">
             <h2 class="panel-title">Style Sets</h2>
             
+            <div class="style-control-grid">
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="styleCategoryFilter">
+                  <option value="all">All Styles</option>
+                  <option value="nav">Nav</option>
+                  <option value="header">Header</option>
+                  <option value="cta">CTA / Hero</option>
+                  <option value="feature">Feature</option>
+                  <option value="blog">Blog</option>
+                  <option value="testimonial">Testimonials</option>
+                  <option value="pricing">Pricing</option>
+                  <option value="sidebar">Sidebar</option>
+                  <option value="form">Form</option>
+                  <option value="table">Table</option>
+                  <option value="footer">Footer</option>
+                  <option value="button">Button</option>
+                </select>
+              </div>
+            </div>
+
             <!-- Style Selection -->
             <div class="form-group">
               <label class="form-label">Select Style</label>
               <select class="form-input" id="styleSelect">
                 <option value="">Choose a style...</option>
               </select>
+            </div>
+
+            <div class="style-panel-section">
+              <div class="style-panel-section-title">Layout</div>
+              <div class="style-control-grid style-control-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Width</label>
+                  <select class="form-input" id="styleWidthMode">
+                    <option value="auto">Auto</option>
+                    <option value="custom">Custom</option>
+                    <option value="full">Full Width</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Custom Width (px)</label>
+                  <input type="number" class="form-input" id="styleCustomWidth" value="360" min="240" max="1440">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Min Height (px)</label>
+                  <input type="number" class="form-input" id="styleMinHeight" value="0" min="0" max="1600">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Shadow</label>
+                  <select class="form-input" id="styleShadowSelect">
+                    <option value="none">None</option>
+                    <option value="sm">Small</option>
+                    <option value="md" selected>Medium</option>
+                    <option value="lg">Large</option>
+                    <option value="xl">XL</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="style-panel-section">
+              <div class="style-panel-section-title">Preview Mode</div>
+              <div class="style-toggle-row">
+                <label class="style-toggle">
+                  <input type="checkbox" id="styleDarkModeToggle">
+                  <span>Dark Mode</span>
+                </label>
+                <label class="style-toggle">
+                  <input type="checkbox" id="styleRtlToggle">
+                  <span>RTL</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="style-panel-section">
+              <div class="style-panel-section-title">Typography</div>
+              <div class="style-control-grid style-control-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Title Size</label>
+                  <input type="number" class="form-input" id="styleTitleSize" value="18" min="10" max="80">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Body Size</label>
+                  <input type="number" class="form-input" id="styleBodySize" value="14" min="10" max="48">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Text Color</label>
+                  <input type="color" class="form-input form-input-color" id="styleTextColor" value="#1f2937">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Accent Color</label>
+                  <input type="color" class="form-input form-input-color" id="styleAccentColor" value="#7c2bee">
+                </div>
+              </div>
+            </div>
+
+            <div class="style-panel-section">
+              <div class="style-panel-section-title">Content Override</div>
+              <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-input" id="styleContentTitle" placeholder="Override title content">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input" id="styleContentDescription" rows="3" placeholder="Override description content"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Button / CTA Text</label>
+                <input type="text" class="form-input" id="styleContentButton" placeholder="Override button text">
+              </div>
             </div>
 
             <!-- Style Preview Card -->

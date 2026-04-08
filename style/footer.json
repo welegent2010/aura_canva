@@ -1,0 +1,111 @@
+{
+  "id": "footer-section",
+  "name": "Footer",
+  "category": "footer",
+  "description": "多列页脚区，含导航链接、社交图标、版权信息，支持深浅色模式和RTL",
+  "version": "1.0.0",
+  "thumbnail": "https://via.placeholder.com/600x120/0f172a/94a3b8?text=Footer",
+
+  "layout": {
+    "type": "section",
+    "width": "full",
+    "fullWidth": true,
+    "height": "auto"
+  },
+
+  "grid": {
+    "columns": 1,
+    "columnsTablet": 1,
+    "columnsPhone": 1,
+    "gap": 0,
+    "minWidth": 320,
+    "maxWidth": 1440
+  },
+
+  "cardStyle": {
+    "bg": "#0f172a",
+    "bgDark": "#020617",
+    "text": "#94a3b8",
+    "textDark": "#64748b",
+    "border": "#1e293b",
+    "borderDark": "#0f172a",
+    "radius": 0,
+    "padding": 64,
+    "shadow": "none"
+  },
+
+  "textStyles": {
+    "title": {
+      "fontSize": 22,
+      "fontWeight": 800,
+      "color": "#f1f5f9",
+      "lineHeight": 1.3,
+      "letterSpacing": -0.5,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "subtitle": {
+      "fontSize": 13,
+      "fontWeight": 700,
+      "color": "#f1f5f9",
+      "lineHeight": 1.5,
+      "letterSpacing": 0.5,
+      "textAlign": "left",
+      "textTransform": "uppercase"
+    },
+    "description": {
+      "fontSize": 14,
+      "fontWeight": 400,
+      "color": "#94a3b8",
+      "lineHeight": 1.7,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    }
+  },
+
+  "features": {
+    "darkMode": true,
+    "rtl": true,
+    "responsive": true,
+    "shadow": false
+  },
+
+  "animation": {
+    "enabled": false,
+    "hover": { "cardLift": false, "liftDistance": 0, "cardShadow": false, "shadowIntensity": 0, "imageZoom": false, "imageScale": 1, "buttonColorChange": false, "buttonHoverColor": "" },
+    "entry": { "enabled": false, "type": "none", "duration": 0, "delay": 0, "stagger": false }
+  },
+
+  "template": {
+    "html": "<footer class=\"site-footer\">\n  <div class=\"footer-inner\">\n    <div class=\"footer-brand-col\">\n      <a href=\"#\" class=\"footer-brand\">{{name}}</a>\n      <p class=\"footer-tagline\">{{description}}</p>\n      <div class=\"footer-social\">\n        <a href=\"{{social_x}}\" class=\"footer-social-link\" aria-label=\"X/Twitter\">𝕏</a>\n        <a href=\"{{social_github}}\" class=\"footer-social-link\" aria-label=\"GitHub\">⌥</a>\n        <a href=\"{{social_linkedin}}\" class=\"footer-social-link\" aria-label=\"LinkedIn\">in</a>\n      </div>\n    </div>\n    <div class=\"footer-links-grid\">\n      <div class=\"footer-col\">\n        <h4 class=\"footer-col-title\">{{col1_title}}</h4>\n        <ul>\n          <li><a href=\"#\">{{col1_link1}}</a></li>\n          <li><a href=\"#\">{{col1_link2}}</a></li>\n          <li><a href=\"#\">{{col1_link3}}</a></li>\n        </ul>\n      </div>\n      <div class=\"footer-col\">\n        <h4 class=\"footer-col-title\">{{col2_title}}</h4>\n        <ul>\n          <li><a href=\"#\">{{col2_link1}}</a></li>\n          <li><a href=\"#\">{{col2_link2}}</a></li>\n          <li><a href=\"#\">{{col2_link3}}</a></li>\n        </ul>\n      </div>\n      <div class=\"footer-col\">\n        <h4 class=\"footer-col-title\">{{col3_title}}</h4>\n        <ul>\n          <li><a href=\"#\">{{col3_link1}}</a></li>\n          <li><a href=\"#\">{{col3_link2}}</a></li>\n          <li><a href=\"#\">{{col3_link3}}</a></li>\n        </ul>\n      </div>\n    </div>\n  </div>\n  <div class=\"footer-bottom\">\n    <p>{{copyright}}</p>\n    <div class=\"footer-legal\">\n      <a href=\"#\">Privacy</a>\n      <a href=\"#\">Terms</a>\n      <a href=\"#\">Cookies</a>\n    </div>\n  </div>\n</footer>",
+    "css": "/* Footer Section */\n.site-footer {\n  background: var(--card-bg, #0f172a);\n  color: var(--card-text, #94a3b8);\n  border-top: 1px solid var(--card-border, #1e293b);\n  width: 100%;\n}\n.footer-inner {\n  max-width: 1280px;\n  margin: 0 auto;\n  padding: var(--card-padding, 64px) 24px 40px;\n  display: grid;\n  grid-template-columns: 300px 1fr;\n  gap: 60px;\n}\n\n/* Brand Column */\n.footer-brand {\n  font-size: var(--title-font-size, 22px);\n  font-weight: var(--title-font-weight, 800);\n  color: var(--title-color, #f1f5f9);\n  text-decoration: none;\n  letter-spacing: -0.5px;\n  display: block;\n  margin-bottom: 12px;\n}\n.footer-tagline {\n  font-size: var(--description-font-size, 14px);\n  color: var(--description-color, #94a3b8);\n  line-height: var(--description-line-height, 1.7);\n  margin: 0 0 20px;\n}\n.footer-social {\n  display: flex;\n  gap: 10px;\n}\n.footer-social-link {\n  width: 36px;\n  height: 36px;\n  border-radius: 50%;\n  background: #1e293b;\n  color: #94a3b8;\n  text-decoration: none;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 14px;\n  font-weight: 700;\n  transition: all 0.2s;\n}\n.footer-social-link:hover { background: #7c3aed; color: #fff; }\n\n/* Links Grid */\n.footer-links-grid {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 32px;\n}\n.footer-col-title {\n  font-size: var(--subtitle-font-size, 13px);\n  font-weight: 700;\n  color: #f1f5f9;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n  margin: 0 0 16px;\n}\n.footer-col ul {\n  list-style: none;\n  padding: 0;\n  margin: 0;\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n.footer-col ul li a {\n  font-size: 14px;\n  color: #94a3b8;\n  text-decoration: none;\n  transition: color 0.2s;\n}\n.footer-col ul li a:hover { color: #f1f5f9; }\n\n/* Bottom Bar */\n.footer-bottom {\n  max-width: 1280px;\n  margin: 0 auto;\n  padding: 24px;\n  border-top: 1px solid #1e293b;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: 16px;\n  flex-wrap: wrap;\n}\n.footer-bottom p {\n  font-size: 13px;\n  color: #475569;\n  margin: 0;\n}\n.footer-legal {\n  display: flex;\n  gap: 20px;\n}\n.footer-legal a {\n  font-size: 13px;\n  color: #475569;\n  text-decoration: none;\n  transition: color 0.2s;\n}\n.footer-legal a:hover { color: #94a3b8; }\n\n/* Light mode */\n.light .site-footer, [data-theme=\"light\"] .site-footer {\n  background: #f8fafc;\n  border-color: #e2e8f0;\n  color: #64748b;\n}\n.light .footer-brand, [data-theme=\"light\"] .footer-brand { color: #0f172a; }\n.light .footer-col-title, [data-theme=\"light\"] .footer-col-title { color: #0f172a; }\n.light .footer-social-link, [data-theme=\"light\"] .footer-social-link { background: #e2e8f0; }\n.light .footer-col ul li a, [data-theme=\"light\"] .footer-col ul li a { color: #64748b; }\n.light .footer-bottom, [data-theme=\"light\"] .footer-bottom { border-color: #e2e8f0; }\n\n/* RTL */\n[dir=\"rtl\"] .footer-inner { direction: rtl; }\n[dir=\"rtl\"] .footer-col ul { text-align: right; }\n[dir=\"rtl\"] .footer-bottom { flex-direction: row-reverse; }\n\n/* Responsive */\n@media (max-width: 767px) {\n  .footer-inner { grid-template-columns: 1fr; gap: 40px; }\n  .footer-links-grid { grid-template-columns: repeat(2, 1fr); }\n  .footer-bottom { flex-direction: column; text-align: center; }\n}\n@media (max-width: 479px) {\n  .footer-links-grid { grid-template-columns: 1fr; }\n}"
+  },
+
+  "fields": {
+    "name": { "required": true, "default": "Aura Canvas" },
+    "description": { "required": false, "default": "The modern visual editor for building beautiful web pages without writing code." },
+    "col1_title": { "required": false, "default": "Product" },
+    "col1_link1": { "required": false, "default": "Features" },
+    "col1_link2": { "required": false, "default": "Pricing" },
+    "col1_link3": { "required": false, "default": "Changelog" },
+    "col2_title": { "required": false, "default": "Company" },
+    "col2_link1": { "required": false, "default": "About" },
+    "col2_link2": { "required": false, "default": "Blog" },
+    "col2_link3": { "required": false, "default": "Careers" },
+    "col3_title": { "required": false, "default": "Support" },
+    "col3_link1": { "required": false, "default": "Docs" },
+    "col3_link2": { "required": false, "default": "Community" },
+    "col3_link3": { "required": false, "default": "Status" },
+    "social_x": { "required": false, "default": "#" },
+    "social_github": { "required": false, "default": "#" },
+    "social_linkedin": { "required": false, "default": "#" },
+    "copyright": { "required": false, "default": "© 2026 Aura Canvas. All rights reserved." }
+  },
+
+  "dataMapping": {
+    "name": ["name", "brand", "logo", "品牌"],
+    "description": ["description", "tagline", "简介"],
+    "copyright": ["copyright", "rights", "版权"]
+  }
+}

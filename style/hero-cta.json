@@ -1,0 +1,133 @@
+{
+  "id": "hero-cta-style",
+  "name": "Hero / CTA Section",
+  "category": "cta",
+  "description": "全宽Hero区域或CTA号召行动区块，支持深浅色、RTL、渐变背景",
+  "version": "1.0.0",
+  "thumbnail": "https://via.placeholder.com/600x200/6d28d9/ffffff?text=Hero+CTA",
+
+  "layout": {
+    "type": "section",
+    "width": "full",
+    "fullWidth": true,
+    "height": "auto",
+    "minHeight": 400
+  },
+
+  "grid": {
+    "columns": 1,
+    "columnsTablet": 1,
+    "columnsPhone": 1,
+    "gap": 0,
+    "minWidth": 320,
+    "maxWidth": 1440
+  },
+
+  "cardStyle": {
+    "bg": "linear-gradient(135deg, #6d28d9 0%, #3b82f6 100%)",
+    "bgDark": "linear-gradient(135deg, #4c1d95 0%, #1e3a8a 100%)",
+    "text": "#ffffff",
+    "textDark": "#f8fafc",
+    "border": "transparent",
+    "borderDark": "transparent",
+    "radius": 0,
+    "padding": 80,
+    "shadow": "none"
+  },
+
+  "textStyles": {
+    "title": {
+      "fontSize": 48,
+      "fontWeight": 800,
+      "color": "#ffffff",
+      "lineHeight": 1.15,
+      "letterSpacing": -0.5,
+      "textAlign": "center",
+      "textTransform": "none"
+    },
+    "subtitle": {
+      "fontSize": 16,
+      "fontWeight": 500,
+      "color": "rgba(255,255,255,0.8)",
+      "lineHeight": 1.5,
+      "letterSpacing": 2,
+      "textAlign": "center",
+      "textTransform": "uppercase"
+    },
+    "description": {
+      "fontSize": 18,
+      "fontWeight": 400,
+      "color": "rgba(255,255,255,0.85)",
+      "lineHeight": 1.7,
+      "letterSpacing": 0,
+      "textAlign": "center",
+      "textTransform": "none"
+    },
+    "button": {
+      "fontSize": 16,
+      "fontWeight": 700,
+      "color": "#6d28d9",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "center",
+      "textTransform": "none"
+    }
+  },
+
+  "animation": {
+    "enabled": true,
+    "hover": {
+      "cardLift": false,
+      "liftDistance": 0,
+      "cardShadow": false,
+      "shadowIntensity": 0,
+      "imageZoom": false,
+      "imageScale": 1,
+      "buttonColorChange": true,
+      "buttonHoverColor": "#5b21b6"
+    },
+    "entry": {
+      "enabled": true,
+      "type": "fadeIn",
+      "duration": 0.6,
+      "delay": 0,
+      "stagger": false
+    }
+  },
+
+  "features": {
+    "darkMode": true,
+    "rtl": true,
+    "responsive": true,
+    "shadow": false,
+    "fullWidthSection": true
+  },
+
+  "template": {
+    "html": "<section class=\"hero-cta\">\n  <div class=\"hero-inner\">\n    <p class=\"hero-eyebrow\">{{subtitle}}</p>\n    <h1 class=\"hero-title\">{{name}}</h1>\n    <p class=\"hero-desc\">{{description}}</p>\n    <div class=\"hero-actions\">\n      <a href=\"{{link}}\" class=\"hero-btn-primary\">{{button_text}}</a>\n      <a href=\"{{link_secondary}}\" class=\"hero-btn-secondary\">Learn More</a>\n    </div>\n    <div class=\"hero-stats\">\n      <div class=\"hero-stat\"><span class=\"stat-num\">{{stat1}}</span><span class=\"stat-label\">Users</span></div>\n      <div class=\"hero-stat\"><span class=\"stat-num\">{{stat2}}</span><span class=\"stat-label\">Projects</span></div>\n      <div class=\"hero-stat\"><span class=\"stat-num\">{{stat3}}</span><span class=\"stat-label\">Rating</span></div>\n    </div>\n  </div>\n</section>",
+    "css": "/* Hero CTA Section - Full Width */\n.hero-cta {\n  background: var(--card-bg, linear-gradient(135deg, #6d28d9 0%, #3b82f6 100%));\n  padding: var(--card-padding, 80px) 24px;\n  text-align: center;\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n}\n.hero-cta::before {\n  content: '';\n  position: absolute;\n  inset: 0;\n  background: radial-gradient(ellipse at top, rgba(255,255,255,0.08) 0%, transparent 70%);\n  pointer-events: none;\n}\n.hero-inner {\n  max-width: 720px;\n  margin: 0 auto;\n  position: relative;\n  z-index: 1;\n}\n.hero-eyebrow {\n  font-size: var(--subtitle-font-size, 13px);\n  font-weight: var(--subtitle-font-weight, 600);\n  color: rgba(255,255,255,0.75);\n  text-transform: uppercase;\n  letter-spacing: 2px;\n  margin: 0 0 16px;\n}\n.hero-title {\n  font-size: clamp(32px, 5vw, var(--title-font-size, 48px));\n  font-weight: var(--title-font-weight, 800);\n  color: var(--title-color, #ffffff);\n  line-height: 1.15;\n  letter-spacing: -0.5px;\n  margin: 0 0 20px;\n}\n.hero-desc {\n  font-size: clamp(15px, 2vw, var(--description-font-size, 18px));\n  color: var(--description-color, rgba(255,255,255,0.85));\n  line-height: 1.7;\n  margin: 0 0 40px;\n}\n.hero-actions {\n  display: flex;\n  gap: 16px;\n  justify-content: center;\n  flex-wrap: wrap;\n  margin-bottom: 48px;\n}\n.hero-btn-primary {\n  display: inline-block;\n  padding: 14px 32px;\n  background: #ffffff;\n  color: #6d28d9;\n  font-size: var(--button-font-size, 16px);\n  font-weight: var(--button-font-weight, 700);\n  border-radius: 50px;\n  text-decoration: none;\n  transition: all 0.25s ease;\n  box-shadow: 0 4px 14px rgba(0,0,0,0.15);\n}\n.hero-btn-primary:hover {\n  background: #f3f4f6;\n  transform: translateY(-2px);\n  box-shadow: 0 8px 24px rgba(0,0,0,0.2);\n}\n.hero-btn-secondary {\n  display: inline-block;\n  padding: 14px 32px;\n  background: rgba(255,255,255,0.12);\n  color: #ffffff;\n  font-size: 16px;\n  font-weight: 600;\n  border-radius: 50px;\n  text-decoration: none;\n  border: 1px solid rgba(255,255,255,0.3);\n  transition: all 0.25s ease;\n  backdrop-filter: blur(4px);\n}\n.hero-btn-secondary:hover {\n  background: rgba(255,255,255,0.22);\n  transform: translateY(-2px);\n}\n.hero-stats {\n  display: flex;\n  gap: 40px;\n  justify-content: center;\n  flex-wrap: wrap;\n}\n.hero-stat {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n.stat-num {\n  font-size: 28px;\n  font-weight: 800;\n  color: #ffffff;\n}\n.stat-label {\n  font-size: 13px;\n  color: rgba(255,255,255,0.65);\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n\n/* Dark mode override */\n[data-theme=\"dark\"] .hero-cta {\n  background: linear-gradient(135deg, #4c1d95 0%, #1e3a8a 100%);\n}\n\n/* RTL */\n[dir=\"rtl\"] .hero-actions { flex-direction: row-reverse; }\n\n/* Responsive */\n@media (max-width: 599px) {\n  .hero-cta { padding: 60px 16px; }\n  .hero-stats { gap: 24px; }\n  .hero-btn-primary, .hero-btn-secondary { width: 100%; text-align: center; }\n}"
+  },
+
+  "fields": {
+    "name": { "required": true, "default": "Build Something Amazing" },
+    "subtitle": { "required": false, "default": "Introducing" },
+    "description": { "required": false, "default": "The modern visual editor that turns ideas into beautiful web pages. No code required." },
+    "button_text": { "required": false, "default": "Get Started Free" },
+    "link": { "required": false, "default": "#" },
+    "link_secondary": { "required": false, "default": "#" },
+    "stat1": { "required": false, "default": "10K+" },
+    "stat2": { "required": false, "default": "500+" },
+    "stat3": { "required": false, "default": "4.9★" }
+  },
+
+  "dataMapping": {
+    "name": ["name", "title", "headline", "标题", "名称"],
+    "subtitle": ["subtitle", "eyebrow", "tag", "副标题"],
+    "description": ["description", "desc", "body", "描述"],
+    "button_text": ["button_text", "cta", "action", "按钮文字"],
+    "link": ["link", "url", "href", "链接"],
+    "stat1": ["stat1", "users", "用户数"],
+    "stat2": ["stat2", "projects", "项目数"],
+    "stat3": ["stat3", "rating", "评分"]
+  }
+}
