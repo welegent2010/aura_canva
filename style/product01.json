@@ -1,0 +1,127 @@
+{
+  "id": "product01-style",
+  "name": "Product 01",
+  "category": "product",
+  "description": "编辑感商品卡：大图、价格、库存标签和悬浮加号按钮。",
+  "version": "1.0.0",
+  "thumbnail": "https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/aa4207f0-462b-4f11-861d-133eedb9b9a0_800w.webp",
+  "grid": {
+    "columns": 4,
+    "gap": 24,
+    "minWidth": 260,
+    "maxWidth": 1440
+  },
+  "cardStyle": {
+    "bg": "transparent",
+    "text": "#6B4F3A",
+    "border": "transparent",
+    "radius": 0,
+    "padding": 0,
+    "shadow": "none"
+  },
+  "textStyles": {
+    "title": {
+      "fontSize": 16,
+      "fontWeight": 500,
+      "color": "#6B4F3A",
+      "lineHeight": 1.4,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "description": {
+      "fontSize": 12,
+      "fontWeight": 400,
+      "color": "#5A646A",
+      "lineHeight": 1.5,
+      "letterSpacing": 0,
+      "textAlign": "left",
+      "textTransform": "none"
+    },
+    "price": {
+      "fontSize": 14,
+      "fontWeight": 600,
+      "color": "#6B4F3A",
+      "lineHeight": 1.2,
+      "letterSpacing": 0,
+      "textAlign": "right",
+      "textTransform": "none"
+    },
+    "badge": {
+      "fontSize": 10,
+      "fontWeight": 600,
+      "color": "#6B4F3A",
+      "lineHeight": 1.2,
+      "letterSpacing": 0,
+      "textAlign": "center",
+      "textTransform": "none"
+    },
+    "button": {
+      "fontSize": 16,
+      "fontWeight": 500,
+      "color": "#6B4F3A",
+      "lineHeight": 1,
+      "letterSpacing": 0,
+      "textAlign": "center",
+      "textTransform": "none"
+    }
+  },
+  "animation": {
+    "enabled": true,
+    "hover": {
+      "cardLift": false,
+      "liftDistance": 0,
+      "cardShadow": false,
+      "shadowIntensity": 0,
+      "imageZoom": true,
+      "imageScale": 1.05,
+      "buttonColorChange": false,
+      "buttonHoverColor": "#ffffff"
+    },
+    "entry": {
+      "enabled": true,
+      "type": "fadeInUp",
+      "duration": 0.3,
+      "delay": 0,
+      "stagger": true
+    }
+  },
+  "template": {
+    "html": "<div class=\"product01-card\">\n  <div class=\"product01-media\">\n    <img src=\"{{image}}\" alt=\"{{name}}\" class=\"product01-image\" />\n    <button class=\"product01-action\" aria-label=\"{{buttonText}}\">+</button>\n  </div>\n  <div class=\"product01-meta\">\n    <div class=\"product01-copy\">\n      <h3 class=\"product01-title\">{{name}}</h3>\n      <p class=\"product01-description\">{{description}}</p>\n    </div>\n    <span class=\"product01-price\">{{price}}</span>\n  </div>\n  <div class=\"product01-badge\">{{badge}}</div>\n</div>",
+    "css": ".card {\n  background: transparent;\n  border: none;\n  border-radius: 0;\n  padding: 0;\n  box-shadow: none;\n  overflow: visible;\n}\n\n.product01-card {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n  color: #6B4F3A;\n}\n\n.product01-media {\n  position: relative;\n  width: 100%;\n  aspect-ratio: 1 / 1;\n  border-radius: 20px;\n  overflow: hidden;\n  border: 1px solid rgba(107, 79, 58, 0.1);\n  background: #F8F6F1;\n}\n\n.product01-image {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n  display: block;\n  transition: transform 0.5s ease;\n}\n\n.product01-card:hover .product01-image {\n  transform: scale(1.05);\n}\n\n.product01-action {\n  position: absolute;\n  right: 16px;\n  bottom: 16px;\n  width: 40px;\n  height: 40px;\n  border: none;\n  border-radius: 9999px;\n  background: #ffffff;\n  color: var(--button-color, #6B4F3A);\n  box-shadow: 0 8px 20px rgba(17, 24, 39, 0.12);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  opacity: 0;\n  transform: translateY(8px);\n  transition: opacity 0.3s ease, transform 0.3s ease;\n  font-size: var(--button-font-size, 16px);\n  font-weight: var(--button-font-weight, 500);\n  line-height: 1;\n}\n\n.product01-card:hover .product01-action {\n  opacity: 1;\n  transform: translateY(0);\n}\n\n.product01-meta {\n  display: flex;\n  align-items: flex-start;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.product01-copy {\n  min-width: 0;\n  flex: 1;\n}\n\n.product01-title {\n  margin: 0;\n  font-size: var(--title-font-size, 16px);\n  font-weight: var(--title-font-weight, 500);\n  color: var(--title-color, #6B4F3A);\n  line-height: var(--title-line-height, 1.4);\n}\n\n.product01-description {\n  margin: 4px 0 0;\n  font-size: var(--description-font-size, 12px);\n  font-weight: var(--description-font-weight, 400);\n  color: var(--description-color, #5A646A);\n  line-height: var(--description-line-height, 1.5);\n}\n\n.product01-price {\n  flex-shrink: 0;\n  font-size: var(--price-font-size, 14px);\n  font-weight: var(--price-font-weight, 600);\n  color: var(--price-color, #6B4F3A);\n  line-height: var(--price-line-height, 1.2);\n}\n\n.product01-badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  width: fit-content;\n  padding: 4px 8px;\n  border-radius: 6px;\n  background: rgba(107, 79, 58, 0.1);\n  color: var(--badge-color, #6B4F3A);\n  font-size: var(--badge-font-size, 10px);\n  font-weight: var(--badge-font-weight, 600);\n  line-height: var(--badge-line-height, 1.2);\n}\n\n.product01-badge:empty {\n  display: none;\n}\n\n[dir=\"rtl\"] .product01-meta {\n  flex-direction: row-reverse;\n}\n\n[dir=\"rtl\"] .product01-action {\n  right: auto;\n  left: 16px;\n}\n\n@media (max-width: 640px) {\n  .product01-action {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}"
+  },
+  "fields": {
+    "image": {
+      "required": true,
+      "default": "https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/aa4207f0-462b-4f11-861d-133eedb9b9a0_800w.webp"
+    },
+    "name": {
+      "required": true,
+      "default": "Solstice Speckle Mug"
+    },
+    "description": {
+      "required": false,
+      "default": "12 oz, ash-speckled glaze"
+    },
+    "price": {
+      "required": true,
+      "default": "$86"
+    },
+    "badge": {
+      "required": false,
+      "default": "In stock"
+    },
+    "buttonText": {
+      "required": false,
+      "default": "Quick add"
+    }
+  },
+  "dataMapping": {
+    "image": ["image", "imageUrl", "url", "图片", "图片链接"],
+    "name": ["name", "title", "商品名称", "名称"],
+    "description": ["description", "subtitle", "规格", "副标题", "商品描述"],
+    "price": ["price", "价格", "售价"],
+    "badge": ["badge", "status", "库存", "标签"],
+    "buttonText": ["buttonText", "cta", "按钮文字"]
+  }
+}

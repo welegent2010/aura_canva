@@ -1,0 +1,684 @@
+<html lang="en" class="scroll-smooth dark"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IriFlux Studio | Independent Designer &amp; Technologist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+
+  <script>
+    // Theme Logic - Default to Dark
+    (function() {
+      // Check if explicitly set to light, otherwise default to dark
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+<link id="all-fonts-link-font-geist" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-geist">.font-geist { font-family: 'Geist', sans-serif !important; }</style><link id="all-fonts-link-font-roboto" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-roboto">.font-roboto { font-family: 'Roboto', sans-serif !important; }</style><link id="all-fonts-link-font-montserrat" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-montserrat">.font-montserrat { font-family: 'Montserrat', sans-serif !important; }</style><link id="all-fonts-link-font-poppins" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-poppins">.font-poppins { font-family: 'Poppins', sans-serif !important; }</style><link id="all-fonts-link-font-playfair" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&amp;display=swap"><style id="all-fonts-style-font-playfair">.font-playfair { font-family: 'Playfair Display', serif !important; }</style><link id="all-fonts-link-font-instrument-serif" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-instrument-serif">.font-instrument-serif { font-family: 'Instrument Serif', serif !important; }</style><link id="all-fonts-link-font-merriweather" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&amp;display=swap"><style id="all-fonts-style-font-merriweather">.font-merriweather { font-family: 'Merriweather', serif !important; }</style><link id="all-fonts-link-font-bricolage" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-bricolage">.font-bricolage { font-family: 'Bricolage Grotesque', sans-serif !important; }</style><link id="all-fonts-link-font-jakarta" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-jakarta">.font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif !important; }</style><link id="all-fonts-link-font-manrope" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-manrope">.font-manrope { font-family: 'Manrope', sans-serif !important; }</style><link id="all-fonts-link-font-space-grotesk" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-space-grotesk">.font-space-grotesk { font-family: 'Space Grotesk', sans-serif !important; }</style><link id="all-fonts-link-font-work-sans" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-work-sans">.font-work-sans { font-family: 'Work Sans', sans-serif !important; }</style><link id="all-fonts-link-font-pt-serif" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&amp;display=swap"><style id="all-fonts-style-font-pt-serif">.font-pt-serif { font-family: 'PT Serif', serif !important; }</style><link id="all-fonts-link-font-geist-mono" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-geist-mono">.font-geist-mono { font-family: 'Geist Mono', monospace !important; }</style><link id="all-fonts-link-font-space-mono" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap"><style id="all-fonts-style-font-space-mono">.font-space-mono { font-family: 'Space Mono', monospace !important; }</style><link id="all-fonts-link-font-quicksand" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-quicksand">.font-quicksand { font-family: 'Quicksand', sans-serif !important; }</style><link id="all-fonts-link-font-nunito" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&amp;display=swap"><style id="all-fonts-style-font-nunito">.font-nunito { font-family: 'Nunito', sans-serif !important; }</style><link id="all-fonts-link-font-newsreader" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..800&amp;display=swap"><style id="all-fonts-style-font-newsreader">.font-newsreader { font-family: 'Newsreader', serif !important; }</style><link id="all-fonts-link-font-google-sans-flex" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-google-sans-flex">.font-google-sans-flex { font-family: 'Google Sans Flex', sans-serif !important; }</style><link id="all-fonts-link-font-oswald" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-oswald">.font-oswald { font-family: 'Oswald', sans-serif !important; }</style><link id="all-fonts-link-font-dm-sans" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-dm-sans">.font-dm-sans { font-family: 'DM Sans', sans-serif !important; }</style><link id="all-fonts-link-font-cormorant" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&amp;display=swap"><style id="all-fonts-style-font-cormorant">.font-cormorant { font-family: 'Cormorant Garamond', serif !important; }</style></head>
+
+<body class="dark:bg-[#050505] dark:text-slate-400 transition-colors duration-300 text-slate-400 bg-black">
+
+
+
+
+
+
+
+<!-- Background (component) added by Aura -->
+<div class="aura-background-component top-0 w-full h-screen absolute z-10 opacity-60" data-alpha-mask="71" style="; mask-image: linear-gradient(to bottom, transparent, black 0%, black 71%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 71%, transparent)"><div class="aura-background-component top-0 w-full -z-10 absolute h-full">
+  <div data-us-project="FixNvEwvWwbu3QX9qC3F" class="absolute w-full h-full left-0 top-0 -z-10"></div>
+  <script type="text/javascript">
+    !function(){if(!window.UnicornStudio){window.UnicornStudio={isInitialized:!1};var i=document.createElement("script");i.src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.29/dist/unicornStudio.umd.js",i.onload=function(){window.UnicornStudio.isInitialized||(UnicornStudio.init(),window.UnicornStudio.isInitialized=!0)},(document.head || document.body).appendChild(i)}}();
+  </script>
+</div></div>
+
+
+
+
+
+
+
+  <!-- Max Width Wrapper -->
+  <div class="max-w-[1440px] mx-auto relative dark:bg-[#050505] transition-colors duration-300 shadow-2xl bg-black shadow-white/5">
+
+    <!-- Shot 01: Navigation -->
+    <nav class="dark:border-white/10 dark:bg-[#050505]/80 sticky z-50 bg-black/80 opacity-80 w-full h-20 border-gray-800 border-b top-0 backdrop-blur-md">
+      <div class="grid grid-cols-12 gap-6 h-full max-w-[1200px] mr-auto ml-auto pr-6 pl-6 gap-x-6 gap-y-6 items-center">
+        <!-- Logo (Col 1-4) -->
+        <div class="col-span-4 flex items-center">
+          <a href="#" class="dark:text-white font-semibold tracking-tight text-lg flex items-center gap-2 text-gray-100">
+            <span class="w-5 h-5 bg-gradient-to-br rounded-sm from-blue-600 to-purple-400"></span>
+            IriFlux Studio
+          </a>
+        </div>
+
+        <!-- Links (Col 5-9) -->
+        <div class="col-span-5 hidden md:flex dark:text-gray-400 text-sm font-medium text-gray-500 gap-x-8 gap-y-8 items-center">
+  <a href="/page1-home" class="dark:hover:text-white transition-colors hover:text-gray-100">home</a>
+  <a href="/page2-work" class="dark:hover:text-white transition-colors hover:text-gray-100">Work</a>
+  <a href="/p2details" class="dark:hover:text-white transition-colors hover:text-gray-100">Deatils</a>
+  <a href="/page3-playground" class="dark:hover:text-white transition-colors hover:text-gray-100">Playground</a>
+  <a href="/page4-store" class="dark:hover:text-white transition-colors hover:text-gray-100">Store</a>
+  <a href="/page5-start-project" <="" div=""></a>
+</div>
+
+        <!-- Actions (Col 10-12) -->
+        <div class="col-span-8 md:col-span-3 flex justify-end items-center gap-3">
+          <!-- Theme Toggle -->
+          <button id="theme-toggle" class="p-2 rounded-full dark:hover:bg-white/10 dark:text-gray-300 transition-colors hover:bg-gray-900 text-gray-400" aria-label="Toggle Dark Mode">
+            <span id="icon-sun" class="">
+              <!-- Sun Icon (Show in Dark Mode to switch to Light) -->
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:sun" data-width="18" class=""><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" class=""><circle cx="12" cy="12" r="4" class=""></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></g></svg>
+            </span>
+            <span id="icon-moon" class="hidden">
+              <!-- Moon Icon (Show in Light Mode to switch to Dark) -->
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="18" height="18" viewBox="0 0 24 24" data-icon="lucide:moon" data-width="18"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg>
+            </span>
+          </button>
+
+          <a href="/page6-client-dashboard" class="dark:text-gray-400 dark:hover:text-white hidden lg:block transition-colors hover:text-gray-100 text-xs font-medium text-gray-500">Client Login</a>
+          <a href="/page5-start-project" class="dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-colors whitespace-nowrap hover:bg-gray-300 text-xs font-medium text-black tracking-wide bg-gray-100 rounded-lg pt-2 pr-4 pb-2 pl-4">
+            Start a Project
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Shot 01: Hero (Above the fold) -->
+    <section class="min-h-[820px] flex overflow-hidden lg:py-0 w-full h-auto pt-24 pb-24 relative items-center">
+  <!-- IMG-H1: Hero Background -->
+  <div class="z-0 pointer-events-none absolute top-0 right-0 bottom-0 left-0">
+  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/30264618-635a-4db7-a8d7-ec28d180853b_3840w.webp" alt="Abstract 3D hero background" class="dark:opacity-40 opacity-90 w-full h-full object-cover" loading="eager">
+  <div class="absolute inset-0 dark:bg-[#050505]/50 bg-black/90"></div>
+  <div class="absolute inset-0 bg-gradient-to-r to-transparent dark:from-[#050505] dark:via-[#050505]/40 dark:to-transparent from-black via-black/40">
+  </div>
+</div>
+
+  <div class="max-w-[1200px] mx-auto w-full px-6 grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10 h-full items-center">
+    <!-- Left Content (Col 1-7) -->
+    <div class="col-span-12 lg:col-span-7 flex flex-col justify-center">
+      <h1 class="md:text-6xl lg:text-[64px] leading-[1.05] dark:text-white text-5xl font-bold tracking-tighter mb-6 text-gray-100">
+        Design + Code that ships measurable outcomes.
+      </h1>
+      <p class="text-lg md:text-[18px] leading-[1.55] font-normal dark:text-gray-400 max-w-xl mb-8 text-gray-400">
+        IriFlux Works is an independent design + creative technology practice building interactive product
+        experiences—from concept to production.
+      </p>
+
+      <ul class="flex flex-col gap-2 mb-10">
+        <li class="flex items-center gap-3 text-sm dark:text-gray-300 text-gray-300">
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="16" height="16" viewBox="0 0 24 24" data-icon="lucide:check" data-width="16">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 6L9 17l-5-5"></path>
+          </svg>
+          Design systems &amp; UI engineering
+        </li>
+        <li class="flex items-center gap-3 text-sm dark:text-gray-300 text-gray-300">
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="16" height="16" viewBox="0 0 24 24" data-icon="lucide:check" data-width="16">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 6L9 17l-5-5"></path>
+          </svg>
+          WebGL, motion, and interaction
+        </li>
+        <li class="flex items-center gap-3 text-sm dark:text-gray-300 text-gray-300">
+          <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="16" height="16" viewBox="0 0 24 24" data-icon="lucide:check" data-width="16">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 6L9 17l-5-5"></path>
+          </svg>
+          AI-augmented workflows (human-led craft)
+        </li>
+      </ul>
+
+      <div class="flex flex-wrap items-center gap-4 mb-12">
+        <button class="dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-colors hover:bg-gray-300 text-sm font-medium text-black bg-gray-100 rounded-xl pt-3 pr-6 pb-3 pl-6 cursor-pointer" onclick="window.location.href='/page2-work'" role="button">
+              View Work
+            </button>
+        <button class="dark:text-white dark:border-white/20 dark:hover:bg-white/5 transition-colors hover:bg-gray-950 text-sm font-medium text-gray-100 border-gray-800 border rounded-xl pt-3 pr-6 pb-3 pl-6 cursor-pointer" onclick="window.location.href='/page5-start-project'" role="button">
+              Start a Project
+            </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 dark:text-gray-500 font-medium">
+        <span class="">Based in Bordeaux</span>
+        <span class="dark:text-gray-700 text-gray-700">•</span>
+        <span class="">Available for 2–6 week engagements</span>
+        <span class="dark:text-gray-700 text-gray-700">•</span>
+        <span class="dark:text-blue-400 text-blue-400">Typical response in 24 hours</span>
+      </div>
+    </div>
+
+    <!-- Right Visual (Col 8-12) -->
+    <div class="col-span-12 lg:col-span-5 hidden lg:flex h-full items-center justify-center">
+      <!-- IMG-H2: Accent Object -->
+      <div class="w-full h-auto aspect-[3/4] rounded-[28px] relative overflow-hidden shadow-2xl dark:shadow-none border dark:border-white/10 shadow-gray-800/50 border-gray-800">
+        <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/f1eb4310-9ee9-496d-b245-ba94d47ad9ee_1600w.webp" alt="Abstract accent object" class="transform hover:scale-105 transition-transform duration-700 w-full h-full object-cover" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+
+    <!-- Shot 02: Credibility Strip -->
+    <section class="py-12 border-y dark:border-white/5 dark:bg-[#050505] border-gray-900 bg-black">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+          <h3 class="text-xl md:text-2xl font-semibold tracking-tight dark:text-white max-w-sm text-center md:text-left text-gray-100">
+            Shipped work across fintech, SaaS, and commerce.
+          </h3>
+          <div class="flex flex-wrap justify-center gap-3">
+            <span class="px-4 py-2 rounded-full border dark:border-white/10 dark:bg-white/5 text-sm dark:text-gray-300 border-gray-800 bg-gray-950 text-gray-400">Fintech</span>
+            <span class="px-4 py-2 rounded-full border dark:border-white/10 dark:bg-white/5 text-sm dark:text-gray-300 border-gray-800 bg-gray-950 text-gray-400">SaaS</span>
+            <span class="px-4 py-2 rounded-full border dark:border-white/10 dark:bg-white/5 text-sm dark:text-gray-300 border-gray-800 bg-gray-950 text-gray-400">E-commerce</span>
+            <span class="px-4 py-2 rounded-full border dark:border-white/10 dark:bg-white/5 text-sm dark:text-gray-300 border-gray-800 bg-gray-950 text-gray-400">Design Systems</span>
+            <span class="px-4 py-2 rounded-full border dark:border-white/10 dark:bg-white/5 text-sm dark:text-gray-300 border-gray-800 bg-gray-950 text-gray-400">Motion</span>
+            <span class="px-4 py-2 rounded-full border dark:border-white/10 dark:bg-white/5 text-sm dark:text-gray-300 border-gray-800 bg-gray-950 text-gray-400">WebGL</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 03: Features -->
+    <section class="py-24 dark:bg-[#050505] bg-black">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="grid grid-cols-12 gap-6 mb-16 items-end">
+          <div class="col-span-12 lg:col-span-8">
+            <h2 class="text-4xl lg:text-[40px] leading-[1.15] font-semibold tracking-tight dark:text-white text-gray-100">
+              From messy problems to measurable wins.
+            </h2>
+          </div>
+          <div class="col-span-12 lg:col-span-4">
+            <p class="text-lg text-gray-500 dark:text-gray-400">
+              I design the system, build the interaction, and ship the outcome—without handoff chaos.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <!-- Card 1 (Col 1-4) -->
+          <div class="col-span-1 md:col-span-4 group">
+            <div class="dark:bg-white/5 border dark:border-white/10 p-6 rounded-[20px] h-full transition-colors dark:hover:border-white/20 bg-gray-950 border-gray-800 hover:border-gray-700">
+              <!-- IMG-F1 -->
+              <div class="w-full aspect-square rounded-xl mb-6 overflow-hidden dark:bg-white/5 bg-gray-800">
+                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/d80e2d67-ad8d-4d05-be41-22ae513a41a6_800w.webp" alt="Product Design Abstract" class="group-hover:scale-105 transition-transform duration-500 w-full h-full object-cover">
+              </div>
+              <h3 class="text-xl font-semibold dark:text-white tracking-tight mb-3 text-gray-100">Product Design</h3>
+              <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm leading-relaxed">Flows, UI systems, and prototypes that speed up decisions and reduce risk.</p>
+              <ul class="space-y-2 border-t dark:border-white/5 pt-4 border-gray-800">
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-blue-500 rounded-full"></span> User flows</li>
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-blue-500 rounded-full"></span> UI kit</li>
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-blue-500 rounded-full"></span> Build-ready specs</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Card 2 (Col 5-8) -->
+          <div class="col-span-1 md:col-span-4 group">
+            <div class="dark:bg-white/5 border dark:border-white/10 p-6 rounded-[20px] h-full transition-colors dark:hover:border-white/20 bg-gray-950 border-gray-800 hover:border-gray-700">
+              <!-- IMG-F2 -->
+              <div class="w-full aspect-square rounded-xl mb-6 overflow-hidden dark:bg-white/5 bg-gray-800">
+                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/a8f7509f-b9c0-4056-af11-e4562f84620f_800w.webp" alt="Creative Tech Abstract" class="group-hover:scale-105 transition-transform duration-500 w-full h-full object-cover">
+              </div>
+              <h3 class="text-xl font-semibold dark:text-white tracking-tight mb-3 text-gray-100">Creative Technology</h3>
+              <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm leading-relaxed">Web-native interaction: motion, 3D, and micro-delight that stays performant.</p>
+              <ul class="space-y-2 border-t dark:border-white/5 pt-4 border-gray-800">
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-purple-500 rounded-full"></span> Interactive demos</li>
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-purple-500 rounded-full"></span> Production components</li>
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-purple-500 rounded-full"></span> Performance tuning</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Card 3 (Col 9-12) -->
+          <div class="col-span-1 md:col-span-4 group">
+            <div class="dark:bg-white/5 border dark:border-white/10 p-6 rounded-[20px] h-full transition-colors dark:hover:border-white/20 bg-gray-950 border-gray-800 hover:border-gray-700">
+              <!-- IMG-F3 -->
+              <div class="w-full aspect-square rounded-xl mb-6 overflow-hidden dark:bg-white/5 bg-gray-800">
+                <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/959e3879-9b81-4fcb-ac26-af72d823bb14_800w.webp" alt="Outcomes Abstract" class="group-hover:scale-105 transition-transform duration-500 w-full h-full object-cover">
+              </div>
+              <h3 class="text-xl font-semibold dark:text-white tracking-tight mb-3 text-gray-100">Outcomes</h3>
+              <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm leading-relaxed">Design tied to metrics—activation, conversion, retention, time-to-value.</p>
+              <ul class="space-y-2 border-t dark:border-white/5 pt-4 border-gray-800">
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-pink-500 rounded-full"></span> Experiment plan</li>
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-pink-500 rounded-full"></span> A/B variants</li>
+                <li class="text-sm dark:text-gray-400 flex items-center gap-2 text-gray-400"><span class="w-1 h-1 bg-pink-500 rounded-full"></span> Results snapshot</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 04: Case Studies -->
+    <section id="work" class="py-24 border-t dark:border-white/5 dark:bg-[#050505] border-gray-900 bg-gray-950/50">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="grid grid-cols-12 gap-6 mb-12 items-end">
+          <div class="col-span-12 lg:col-span-8">
+            <h2 class="text-4xl font-semibold tracking-tight dark:text-white mb-2 text-gray-100">
+              Case studies with receipts.
+            </h2>
+            <p class="text-xl text-gray-500 dark:text-gray-400">Not just visuals—process, trade-offs, and outcomes.</p>
+          </div>
+          <div class="col-span-12 lg:col-span-4 flex justify-start lg:justify-end">
+             <a href="#" class="text-sm font-medium dark:text-white hover:opacity-70 flex items-center gap-1 text-gray-100">
+                View all work
+                <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="lucide:arrow-right"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14m-7-7l7 7l-7 7"></path></svg>
+             </a>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <!-- Case 1 -->
+          <div class="col-span-1 md:col-span-4 flex flex-col group cursor-pointer">
+            <!-- IMG-C1 -->
+            <div class="w-full aspect-[4/3] rounded-[20px] overflow-hidden border dark:border-white/10 mb-5 relative border-gray-800">
+              <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/4e046b09-d276-462f-ab32-a6ea1ec179c2_800w.webp" alt="Fintech Case" class="group-hover:scale-105 transition-transform duration-700 w-full h-full object-cover">
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3">
+               <span class="px-2 py-1 rounded-md dark:bg-white/10 border dark:border-white/10 text-xs font-medium dark:text-blue-300 bg-black border-gray-800 text-blue-300">+28% sign-up completion</span>
+               <span class="px-2 py-1 rounded-md dark:bg-white/10 border dark:border-white/10 text-xs font-medium dark:text-blue-300 bg-black border-gray-800 text-blue-300">−17% time-to-first-action</span>
+            </div>
+            <h3 class="text-xl font-semibold dark:text-white mb-2 group-hover:text-blue-500 transition-colors text-gray-100">Fintech Rebrand + Activation</h3>
+            <p class="text-sm dark:text-gray-400 mb-4 line-clamp-2 text-gray-400">Rebuilt the brand system and onboarding flow to reduce drop-off and increase first value.</p>
+            <div class="flex gap-2 text-xs dark:text-gray-500 text-gray-600">
+              <span>Fintech</span>•<span>Design System</span>•<span>Motion</span>
+            </div>
+          </div>
+
+          <!-- Case 2 -->
+          <div class="col-span-1 md:col-span-4 flex flex-col group cursor-pointer">
+            <!-- IMG-C2 -->
+            <div class="w-full aspect-[4/3] rounded-[20px] overflow-hidden border dark:border-white/10 mb-5 relative border-gray-800">
+              <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/2877e4ca-8b06-45d8-91af-ad8fe6f56b2e_800w.webp" alt="SaaS Case" class="group-hover:scale-105 transition-transform duration-700 w-full h-full object-cover">
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3">
+               <span class="px-2 py-1 rounded-md dark:bg-white/10 border dark:border-white/10 text-xs font-medium dark:text-blue-300 bg-black border-gray-800 text-blue-300">+22% activation</span>
+               <span class="px-2 py-1 rounded-md dark:bg-white/10 border dark:border-white/10 text-xs font-medium dark:text-blue-300 bg-black border-gray-800 text-blue-300">+14% week-1 retention</span>
+            </div>
+            <h3 class="text-xl font-semibold dark:text-white mb-2 group-hover:text-blue-500 transition-colors text-gray-100">SaaS Onboarding to “Aha”</h3>
+            <p class="text-sm dark:text-gray-400 mb-4 line-clamp-2 text-gray-400">Guided setup and progressive disclosure to move users from account creation to activation.</p>
+            <div class="flex gap-2 text-xs dark:text-gray-500 text-gray-600">
+              <span>SaaS</span>•<span>UX</span>•<span>Experimentation</span>
+            </div>
+          </div>
+
+          <!-- Case 3 -->
+          <div class="col-span-1 md:col-span-4 flex flex-col group cursor-pointer">
+            <!-- IMG-C3 -->
+            <div class="w-full aspect-[4/3] rounded-[20px] overflow-hidden border dark:border-white/10 mb-5 relative border-gray-800">
+              <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/6626b55a-e813-48c0-bc51-d3bce881db64_800w.webp" alt="Commerce Case" class="group-hover:scale-105 transition-transform duration-700 w-full h-full object-cover">
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3">
+               <span class="px-2 py-1 rounded-md dark:bg-white/10 border dark:border-white/10 text-xs font-medium dark:text-blue-300 bg-black border-gray-800 text-blue-300">−19% checkout abandonment</span>
+               <span class="px-2 py-1 rounded-md dark:bg-white/10 border dark:border-white/10 text-xs font-medium dark:text-blue-300 bg-black border-gray-800 text-blue-300">+11% revenue per visitor</span>
+            </div>
+            <h3 class="text-xl font-semibold dark:text-white mb-2 group-hover:text-blue-500 transition-colors text-gray-100">Commerce Checkout Simplification</h3>
+            <p class="text-sm dark:text-gray-400 mb-4 line-clamp-2 text-gray-400">Reduced friction at payment step and improved mobile-first performance on core checkout components.</p>
+            <div class="flex gap-2 text-xs dark:text-gray-500 text-gray-600">
+              <span>E-commerce</span>•<span>CRO</span>•<span>UI Engineering</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 05: Testimonials -->
+    <section class="py-24 dark:bg-[#050505] bg-black">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <!-- Left Content -->
+          <div class="col-span-1 lg:col-span-5 flex flex-col justify-center">
+            <h2 class="text-4xl font-semibold tracking-tight dark:text-white mb-4 text-gray-100">
+              Trusted by teams that ship.
+            </h2>
+            <p class="text-lg text-gray-500 dark:text-gray-400 mb-8">
+              Clear process, strong craft, measurable outcomes.
+            </p>
+          </div>
+
+          <!-- Right Grid -->
+          <div class="col-span-1 lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- T1 -->
+            <div class="dark:bg-white/5 p-6 rounded-[20px] flex flex-col gap-4 bg-gray-950">
+               <div class="flex items-center gap-3">
+                  <!-- IMG-T1 -->
+                  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/73ef424c-0372-4ff0-8523-597978d5013d_320w.webp" class="w-12 h-12 object-cover rounded-full" alt="Maya Chen">
+                  <div class="">
+                    <div class="text-sm font-semibold dark:text-white text-gray-100">Maya Chen</div>
+                    <div class="text-xs text-gray-500">Head of Product, LatticePay</div>
+                  </div>
+               </div>
+               <p class="text-sm dark:text-gray-300 text-gray-400">“IriFlux turned a messy onboarding into a crisp system our engineers loved. We shipped in 3 weeks and saw sign-up completion jump immediately.”</p>
+               <div class="pt-2 border-t dark:border-white/10 text-xs font-medium dark:text-blue-400 border-gray-800 text-blue-400">Outcome: +28% sign-up completion in 30 days</div>
+            </div>
+
+            <!-- T2 -->
+            <div class="dark:bg-white/5 p-6 rounded-[20px] flex flex-col gap-4 bg-gray-950">
+               <div class="flex items-center gap-3">
+                  <!-- IMG-T2 -->
+                  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/bef2a5e4-cb46-4040-9d48-5cd9cb60b5e0_320w.webp" class="w-12 h-12 object-cover rounded-full" alt="Daniel Reyes">
+                  <div>
+                    <div class="text-sm font-semibold dark:text-white text-gray-100">Daniel Reyes</div>
+                    <div class="text-xs text-gray-500">Design Director, Northline Studio</div>
+                  </div>
+               </div>
+               <p class="text-sm dark:text-gray-300 text-gray-400">“The motion and interaction work felt premium without hurting performance. The new components became our internal standard.”</p>
+               <div class="pt-2 border-t dark:border-white/10 text-xs font-medium dark:text-blue-400 border-gray-800 text-blue-400">Outcome: −19% checkout abandonment after launch</div>
+            </div>
+
+            <!-- T3 -->
+            <div class="dark:bg-white/5 p-6 rounded-[20px] flex flex-col gap-4 bg-gray-950">
+               <div class="flex items-center gap-3">
+                  <!-- IMG-T3 -->
+                  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/1de342c5-7d27-4e0a-adb3-373a54968859_320w.webp" class="w-12 h-12 object-cover rounded-full" alt="Aisha Patel">
+                  <div class="">
+                    <div class="text-sm font-semibold dark:text-white text-gray-100">Aisha Patel</div>
+                    <div class="text-xs text-gray-500">Growth Lead, CloudHaven SaaS</div>
+                  </div>
+               </div>
+               <p class="text-sm dark:text-gray-300 text-gray-400">“Strong taste, even stronger reasoning. Every design decision was tied to a metric and a build plan.”</p>
+               <div class="pt-2 border-t dark:border-white/10 text-xs font-medium dark:text-blue-400 border-gray-800 text-blue-400">Outcome: +22% activation, +14% week-1 retention</div>
+            </div>
+
+            <!-- T4 -->
+            <div class="dark:bg-white/5 p-6 rounded-[20px] flex flex-col gap-4 bg-gray-950">
+               <div class="flex items-center gap-3">
+                  <!-- IMG-T4 -->
+                  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/bbad79a6-b226-4f04-92c1-270175d89b6d_320w.webp" class="w-12 h-12 object-cover rounded-full" alt="Ethan Brooks">
+                  <div class="">
+                    <div class="text-sm font-semibold dark:text-white text-gray-100">Ethan Brooks</div>
+                    <div class="text-xs text-gray-500">VP Product, Meridian Commerce</div>
+                  </div>
+               </div>
+               <p class="text-sm dark:text-gray-300 text-gray-400">“The case study process was as impressive as the final UI—research, prototypes, and results all documented clearly.”</p>
+               <div class="pt-2 border-t dark:border-white/10 text-xs font-medium dark:text-blue-400 border-gray-800 text-blue-400">Outcome: +11% revenue per visitor in 6 weeks</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 06: Playground -->
+    <section id="playground" class="py-24 border-t dark:border-white/5 border-gray-900">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="grid grid-cols-12 gap-6 mb-12 items-end">
+          <div class="col-span-12 lg:col-span-8">
+            <h2 class="text-4xl font-semibold tracking-tight dark:text-white mb-2 text-gray-100">The Playground</h2>
+            <p class="text-lg text-gray-500 dark:text-gray-400">Shaders, motion studies, and interactive experiments—where new ideas become reusable components.</p>
+          </div>
+          <div class="col-span-12 lg:col-span-4 flex justify-start lg:justify-end">
+            <a href="#" class="dark:text-white hover:opacity-70 flex items-center gap-1 text-sm font-medium text-gray-100">
+               Explore Playground
+               <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="lucide:arrow-right"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14m-7-7l7 7l-7 7"></path></svg>
+            </a>
+         </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <!-- IMG-P1 -->
+          <div class="aspect-square rounded-[20px] overflow-hidden dark:bg-white/5 border dark:border-white/10 group cursor-pointer bg-gray-900 border-gray-800">
+            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/359c92a2-37a3-4a60-b849-b9057c3769ba_800w.webp" alt="Playground 1" class="group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 opacity-90 w-full h-full object-cover">
+          </div>
+          <!-- IMG-P2 -->
+          <div class="aspect-square rounded-[20px] overflow-hidden dark:bg-white/5 border dark:border-white/10 group cursor-pointer bg-gray-900 border-gray-800">
+            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/f2b5b594-e6b7-4f5f-b060-756b52d2aaa1_800w.webp" alt="Playground 2" class="group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 opacity-90 w-full h-full object-cover">
+          </div>
+          <!-- IMG-P3 -->
+          <div class="aspect-square rounded-[20px] overflow-hidden dark:bg-white/5 border dark:border-white/10 group cursor-pointer bg-gray-900 border-gray-800">
+            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/38dadc40-e189-489f-84a6-f6e090ca5115_800w.webp" alt="Playground 3" class="group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 opacity-90 w-full h-full object-cover">
+          </div>
+          <!-- IMG-P4 -->
+          <div class="aspect-square rounded-[20px] overflow-hidden dark:bg-white/5 border dark:border-white/10 group cursor-pointer bg-gray-900 border-gray-800">
+            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/4cddf437-b75e-4a35-9d53-05b39eb9c70b_800w.webp" alt="Playground 4" class="group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 opacity-90 w-full h-full object-cover">
+          </div>
+          <!-- IMG-P5 -->
+          <div class="aspect-square rounded-[20px] overflow-hidden dark:bg-white/5 border dark:border-white/10 group cursor-pointer bg-gray-900 border-gray-800">
+            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/7e98cf79-3483-423c-a067-06b12914e8ed_800w.webp" alt="Playground 5" class="group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 opacity-90 w-full h-full object-cover">
+          </div>
+          <!-- IMG-P6 -->
+          <div class="aspect-square rounded-[20px] overflow-hidden dark:bg-white/5 border dark:border-white/10 group cursor-pointer bg-gray-900 border-gray-800">
+            <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/9d09ca01-6e95-4a0d-9574-723562075bb8_800w.webp" alt="Playground 6" class="group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 opacity-90 w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 07: Store -->
+    <section id="store" class="py-24 dark:bg-[#050505] bg-gray-950/50">
+      <div class="max-w-[1200px] mx-auto px-6">
+        <div class="grid grid-cols-12 gap-6 mb-12 items-end">
+          <div class="col-span-12 lg:col-span-8">
+            <h2 class="text-4xl font-semibold tracking-tight dark:text-white mb-2 text-gray-100">Digital assets that ship.</h2>
+            <p class="text-lg text-gray-500 dark:text-gray-400">Reusable kits and templates built from real production work.</p>
+          </div>
+          <div class="col-span-12 lg:col-span-4 flex justify-start lg:justify-end">
+             <button class="text-sm font-medium dark:text-white hover:opacity-70 flex items-center gap-1 text-gray-100">Browse Store <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="lucide:arrow-right"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14m-7-7l7 7l-7 7"></path></svg></button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Product 1 -->
+          <div class="flex flex-col group">
+            <div class="aspect-[4/3] rounded-[20px] overflow-hidden border dark:border-white/10 mb-4 dark:bg-white/5 border-gray-800 bg-black">
+               <!-- IMG-S1 -->
+               <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/05319516-877a-47f4-8d31-7ccbb5ce974a_800w.webp" alt="Flux UI Kit" class="group-hover:scale-105 transition-transform duration-500 w-full h-full object-cover">
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold dark:text-white text-gray-100">Flux UI Kit (Figma)</h3>
+              <span class="text-sm font-medium dark:text-white dark:bg-white/10 px-2 py-1 rounded-md text-gray-100 bg-gray-900">USD $49</span>
+            </div>
+            <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mb-4">
+              <li>• 120+ components</li>
+              <li>• Token-ready styles</li>
+              <li>• Motion notes included</li>
+            </ul>
+            <button class="w-full py-2 rounded-lg border dark:border-white/10 text-sm font-medium dark:hover:bg-white/5 transition-colors border-gray-800 hover:bg-gray-950">View Details</button>
+          </div>
+
+          <!-- Product 2 -->
+          <div class="flex flex-col group">
+            <div class="aspect-[4/3] rounded-[20px] overflow-hidden border dark:border-white/10 mb-4 dark:bg-white/5 border-gray-800 bg-black">
+               <!-- IMG-S2 -->
+               <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/aa4d9d25-d67f-462b-b106-bbe277025dc1_800w.webp" alt="Outcome Template" class="group-hover:scale-105 transition-transform duration-500 w-full h-full object-cover">
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold dark:text-white text-gray-100">Outcome Case Study Template</h3>
+              <span class="text-sm font-medium dark:text-white dark:bg-white/10 px-2 py-1 rounded-md text-gray-100 bg-gray-900">USD $19</span>
+            </div>
+            <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mb-4">
+              <li class="">• Story + metrics structure</li>
+              <li class="">• Results table</li>
+              <li>• Stakeholder-ready</li>
+            </ul>
+            <button class="w-full py-2 rounded-lg border dark:border-white/10 text-sm font-medium dark:hover:bg-white/5 transition-colors border-gray-800 hover:bg-gray-950">View Details</button>
+          </div>
+
+          <!-- Product 3 -->
+          <div class="flex flex-col group">
+            <div class="aspect-[4/3] rounded-[20px] overflow-hidden border dark:border-white/10 mb-4 dark:bg-white/5 border-gray-800 bg-black">
+               <!-- IMG-S3 -->
+               <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/05ac238c-d315-4c54-bc43-e9e279e32ab4_800w.webp" alt="Materials Pack" class="group-hover:scale-105 transition-transform duration-500 w-full h-full object-cover">
+            </div>
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold dark:text-white text-gray-100">Iridescent Materials Pack</h3>
+              <span class="text-sm font-medium dark:text-white dark:bg-white/10 px-2 py-1 rounded-md text-gray-100 bg-gray-900">USD $29</span>
+            </div>
+            <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mb-4">
+              <li class="">• Glass + chrome set</li>
+              <li class="">• Hero lighting tips</li>
+              <li class="">• 4K render-friendly</li>
+            </ul>
+            <button class="w-full py-2 rounded-lg border dark:border-white/10 text-sm font-medium dark:hover:bg-white/5 transition-colors border-gray-800 hover:bg-gray-950">View Details</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 08: Process -->
+    <section class="py-24 dark:bg-[#050505] border-t dark:border-white/5 bg-black border-gray-900">
+      <div class="max-w-[1200px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div class="col-span-1 lg:col-span-5">
+           <h2 class="text-4xl font-semibold tracking-tight dark:text-white mb-4 text-gray-100">A workflow built to ship.</h2>
+           <p class="text-lg text-gray-500 dark:text-gray-400 mb-8">Designed to reduce uncertainty, speed up decisions, and keep delivery measurable.</p>
+           
+           <!-- IMG-R1 (Optional Illustration) -->
+           <div class="rounded-[20px] overflow-hidden border dark:border-white/10 aspect-[3/2] hidden lg:block border-gray-800">
+              <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/f4986e46-1db0-4762-bbcc-b4a263dfebb7_1600w.webp" class="w-full h-full object-cover" alt="Process Abstract">
+           </div>
+        </div>
+
+        <div class="col-span-1 lg:col-span-7 flex flex-col gap-4">
+           <!-- Step 1 -->
+           <div class="p-6 rounded-[20px] border dark:border-white/10 dark:bg-white/5 border-gray-800 bg-gray-950">
+              <div class="flex justify-between mb-2">
+                 <h3 class="font-semibold dark:text-white text-gray-100">Step 1 — Discover</h3>
+                 <span class="text-sm text-gray-500 font-medium">3–5 days</span>
+              </div>
+              <p class="text-sm dark:text-gray-400 text-gray-400">Goals, constraints, success metrics, technical realities</p>
+           </div>
+           <!-- Step 2 -->
+           <div class="p-6 rounded-[20px] border dark:border-white/10 dark:bg-white/5 border-gray-800 bg-gray-950">
+              <div class="flex justify-between mb-2">
+                 <h3 class="font-semibold dark:text-white text-gray-100">Step 2 — Design</h3>
+                 <span class="text-sm text-gray-500 font-medium">1–2 weeks</span>
+              </div>
+              <p class="text-sm dark:text-gray-400 text-gray-400">Flows, UI system, prototypes, iteration loops</p>
+           </div>
+           <!-- Step 3 -->
+           <div class="p-6 rounded-[20px] border dark:border-white/10 dark:bg-white/5 border-gray-800 bg-gray-950">
+              <div class="flex justify-between mb-2">
+                 <h3 class="font-semibold dark:text-white text-gray-100">Step 3 — Build</h3>
+                 <span class="text-sm text-gray-500 font-medium">1–2 weeks</span>
+              </div>
+              <p class="text-sm dark:text-gray-400 text-gray-400">Components, motion rules, performance checks</p>
+           </div>
+           <!-- Step 4 -->
+           <div class="p-6 rounded-[20px] border dark:border-white/10 dark:bg-white/5 border-gray-800 bg-gray-950">
+              <div class="flex justify-between mb-2">
+                 <h3 class="font-semibold dark:text-white text-gray-100">Step 4 — Ship + Measure</h3>
+                 <span class="text-sm text-gray-500 font-medium">2–4 weeks post-launch</span>
+              </div>
+              <p class="text-sm dark:text-gray-400 text-gray-400">Tracking plan, experiments, iteration roadmap</p>
+           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shot 09: Final CTA -->
+    <section id="start" class="py-24 px-6">
+      <div class="max-w-[1200px] mx-auto dark:bg-gray-900 rounded-[28px] overflow-hidden relative shadow-2xl bg-gray-100 text-black">
+         <!-- BG Gradient -->
+         <div class="absolute inset-0 bg-gradient-to-br z-0 from-gray-200 to-gray-50"></div>
+         
+         <div class="relative z-10 p-8 md:p-12 lg:p-16 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+            <div class="col-span-1 md:col-span-8">
+               <h2 class="text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-black">Ready to ship something measurable?</h2>
+               <p class="text-lg max-w-xl mb-10 leading-relaxed text-gray-700">Tell me what you’re building, the metric you want to move, and your timeline. I’ll respond with a clear plan and next steps.</p>
+               
+               <div class="flex flex-wrap gap-4 mb-8">
+                  <button class="transition-colors hover:bg-gray-900 text-base font-semibold text-gray-100 bg-black rounded-xl pt-4 pr-8 pb-4 pl-8 cursor-pointer" onclick="window.location.href='/page5-start-project'" role="button">Start a Project</button>
+                  <button class="transition-colors hover:bg-black/10 text-base font-medium text-black border-black/20 border rounded-xl pt-4 pr-8 pb-4 pl-8">View Work</button>
+               </div>
+
+               <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-gray-600">
+                  <span>Next availability: Jan 6, 2026</span>
+                  <span>•</span>
+                  <span>Typical engagement: 2–6 weeks</span>
+                  <span>•</span>
+                  <span>Budget-friendly sprints available</span>
+               </div>
+            </div>
+
+            <!-- IMG-CTA1 -->
+            <div class="col-span-1 md:col-span-4 hidden md:flex justify-end">
+               <div class="w-full aspect-[3/4] rounded-2xl overflow-hidden relative border border-black/10">
+                  <img src="https://hoirqrkdgbmvpwutwuwj.supabase.co/storage/v1/object/public/assets/assets/38405778-ac06-433a-a4e4-738ea68cecfe_800w.webp" alt="CTA Mood" class="opacity-80 mix-blend-overlay w-full h-full object-cover">
+               </div>
+            </div>
+         </div>
+      </div>
+    </section>
+
+    <!-- Shot 10: Footer -->
+    <footer class="py-12 border-t dark:border-white/5 dark:bg-[#050505] border-gray-900 bg-black">
+      <div class="max-w-[1200px] mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+         <div class="col-span-2 md:col-span-1">
+            <a href="#" class="font-semibold dark:text-white tracking-tight text-lg mb-4 block text-gray-100">IriFlux Studio</a>
+         </div>
+         <div class="flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <h4 class="font-medium dark:text-white mb-1 text-gray-100">Pages</h4>
+            <a href="#work" class="dark:hover:text-white hover:text-gray-100">Work</a>
+            <a href="#playground" class="dark:hover:text-white hover:text-gray-100">Playground</a>
+            <a href="#store" class="dark:hover:text-white hover:text-gray-100">Store</a>
+         </div>
+         <div class="flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <h4 class="font-medium dark:text-white mb-1 text-gray-100">Socials</h4>
+            <a href="#" class="dark:hover:text-white hover:text-gray-100">Twitter / X</a>
+            <a href="#" class="dark:hover:text-white hover:text-gray-100">LinkedIn</a>
+            <a href="#" class="dark:hover:text-white hover:text-gray-100">GitHub</a>
+         </div>
+         <div class="flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <h4 class="font-medium dark:text-white mb-1 text-gray-100">Legal</h4>
+            <a href="#" class="dark:hover:text-white hover:text-gray-100">Privacy Policy</a>
+            <a href="#" class="dark:hover:text-white hover:text-gray-100">Terms of Service</a>
+         </div>
+      </div>
+      <div class="max-w-[1200px] mx-auto px-6 border-t dark:border-white/5 pt-8 flex justify-between text-xs border-gray-900 text-gray-600">
+         <span>© 2026 IriFlux Studio. All rights reserved.</span>
+         <span>Based in Bordeaux, France.</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // Theme Toggle Logic
+    const themeBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('icon-sun');
+    const moonIcon = document.getElementById('icon-moon');
+    const html = document.documentElement;
+
+    function updateIcons() {
+      // Logic: If dark class is present, we are in dark mode. 
+      // Show Sun icon (to switch to light). Hide Moon.
+      if (html.classList.contains('dark')) {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      } else {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      }
+    }
+
+    themeBtn.addEventListener('click', () => {
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+      updateIcons();
+    });
+
+    // Initial Icon State check
+    updateIcons();
+  </script>
+
+</body></html>

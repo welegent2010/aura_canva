@@ -96,5 +96,19 @@
     "category": "button",
     "file": "style/button.json",
     "description": "多款按钮组合展示卡"
+  },
+  {
+    "id": "product01-style",
+    "name": "Product 01",
+    "category": "product",
+    "file": "style/product01.json",
+    "description": "编辑感商品卡，大图+价格+库存标签"
+  },
+  {
+    "id": "product02-style",
+    "name": "Product 02",
+    "category": "product",
+    "file": "style/product02.json",
+    "description": "商品系列请求卡，标题+卖点列表+按钮"
   }
 ]

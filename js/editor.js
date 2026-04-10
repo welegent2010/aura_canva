@@ -756,68 +756,274 @@ class AuraCanvasEditor {
     this.originalHead = doc.head.innerHTML;
     this.originalHtmlClass = doc.documentElement.className;
 
-    const bodyChildren = Array.from(doc.body.children);
-
-    if (bodyChildren.length === 0) {
-      this.addSection('Full Page', html);
-      this.renderSections();
-      this.renderPreview();
-      this.showToast(`Successfully imported ${this.sections.length} sections`, 'success');
-      return;
-    }
-
     this.detectContainerWidth(doc);
 
-    let sections = [];
-    let currentSection = null;
+    const importedSections = this.extractSectionsFromDocument(doc, html)
+      .map(section => this.createSectionData(section.name, section.content, section.className));
 
-    bodyChildren.forEach((child) => {
-      const tagName = child.tagName.toLowerCase();
-      const nodeType = child.nodeType;
+    if (importedSections.length === 0) {
+      importedSections.push(this.createSectionData('Full Page', html));
+    }
 
-      if (nodeType === 8) {
-        const commentText = child.textContent.trim();
-        const sectionMatch = commentText.match(/(?:Section|区域|模块|Block)\s*[:：]\s*(.+)/i);
-        
-        if (sectionMatch) {
-          currentSection = {
-            name: sectionMatch[1].trim(),
-            content: '',
-            className: ''
-          };
-        }
-      } else if (nodeType === 1) {
-        let sectionName = '';
-        let content = child.outerHTML;
-        let className = child.className || '';
-
-        if (tagName === 'header') {
-          sectionName = 'Header / Navigation';
-        } else if (tagName === 'main') {
-          sectionName = 'Main Content';
-        } else if (tagName === 'footer') {
-          sectionName = 'Footer';
-        } else if (tagName === 'section') {
-          sectionName = 'Section';
-        } else if (tagName === 'div' && child.classList.contains('container')) {
-          sectionName = 'Container';
-        } else {
-          sectionName = 'Block';
-        }
-
-        if (currentSection) {
-          sectionName = currentSection.name;
-          className = currentSection.className;
-          currentSection = null;
-        }
-
-        this.addSection(sectionName, content, className);
-      }
-    });
+    this.sections.push(...importedSections);
+    this.selectedSection = importedSections[importedSections.length - 1] || this.selectedSection;
 
     this.renderSections();
     this.renderPreview();
-    this.showToast(`成功导入 ${this.sections.length} 个区块`, 'success');
+    this.saveData();
+    this.showToast(`成功导入 ${importedSections.length} 个区块`, 'success');
+  }
+
+  extractSectionsFromDocument(doc, originalHtml = '') {
+    const sourceNodes = this.expandImportNodes(this.getImportSourceNodes(doc.body));
+
+    if (sourceNodes.length === 0) {
+      return originalHtml ? [{ name: 'Full Page', content: originalHtml, className: '' }] : [];
+    }
+
+    const sections = [];
+    let pendingSectionName = '';
+
+    sourceNodes.forEach((node) => {
+      if (node.nodeType === Node.COMMENT_NODE) {
+        const commentName = this.extractSectionNameFromComment(node.textContent || '');
+        if (commentName) {
+          pendingSectionName = commentName;
+        }
+        return;
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE || this.isIgnoredImportElement(node)) {
+        return;
+      }
+
+      const sectionName = pendingSectionName || this.getSectionNameFromElement(node, sections.length + 1);
+      sections.push({
+        name: sectionName,
+        content: node.outerHTML,
+        className: node.className || ''
+      });
+      pendingSectionName = '';
+    });
+
+    return sections;
+  }
+
+  expandImportNodes(nodes, depth = 0) {
+    if (!Array.isArray(nodes) || nodes.length === 0 || depth >= 2) {
+      return nodes;
+    }
+
+    const expandedNodes = [];
+
+    nodes.forEach((node) => {
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        expandedNodes.push(node);
+        return;
+      }
+
+      if (this.shouldExpandImportNode(node, nodes)) {
+        const childNodes = this.getMeaningfulImportNodes(node);
+        const normalizedChildren = this.expandImportNodes(childNodes, depth + 1);
+
+        if (normalizedChildren.length > 0) {
+          expandedNodes.push(...normalizedChildren);
+          return;
+        }
+      }
+
+      expandedNodes.push(node);
+    });
+
+    return expandedNodes;
+  }
+
+  getImportSourceNodes(container, depth = 0) {
+    const nodes = this.getMeaningfulImportNodes(container);
+    const elementNodes = nodes.filter(node => node.nodeType === Node.ELEMENT_NODE);
+
+    if (elementNodes.length !== 1 || depth >= 3) {
+      return nodes;
+    }
+
+    const [singleElement] = elementNodes;
+    if (!this.shouldUnwrapImportContainer(singleElement)) {
+      return nodes;
+    }
+
+    return this.getImportSourceNodes(singleElement, depth + 1);
+  }
+
+  getMeaningfulImportNodes(container) {
+    return Array.from(container.childNodes).filter(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent.trim().length > 0;
+      }
+
+      if (node.nodeType === Node.COMMENT_NODE) {
+        return node.textContent.trim().length > 0;
+      }
+
+      return node.nodeType === Node.ELEMENT_NODE && !this.isIgnoredImportElement(node);
+    });
+  }
+
+  isIgnoredImportElement(element) {
+    const ignoredTags = ['script', 'style', 'meta', 'link', 'noscript', 'template'];
+    return ignoredTags.includes(element.tagName.toLowerCase());
+  }
+
+  shouldUnwrapImportContainer(element) {
+    const tagName = element.tagName.toLowerCase();
+    const childElements = this.getMeaningfulImportNodes(element)
+      .filter(node => node.nodeType === Node.ELEMENT_NODE);
+
+    if (childElements.length === 0) {
+      return false;
+    }
+
+    if (tagName === 'main') {
+      return childElements.length >= 1;
+    }
+
+    if (tagName !== 'div') {
+      return false;
+    }
+
+    const hasSemanticChild = childElements.some(child => /^(header|nav|main|section|article|footer|aside)$/i.test(child.tagName));
+    const wrapperHint = `${element.id || ''} ${element.className || ''}`.toLowerCase();
+    const looksLikePageWrapper = /(app|page|layout|wrapper|root|shell|site)/.test(wrapperHint);
+
+    return childElements.length >= 3 || hasSemanticChild || looksLikePageWrapper;
+  }
+
+  shouldExpandImportNode(element, siblingNodes = []) {
+    if (this.isBackgroundLikeElement(element)) {
+      return false;
+    }
+
+    const tagName = element.tagName.toLowerCase();
+    if (tagName === 'main') {
+      return true;
+    }
+
+    if (tagName !== 'div') {
+      return false;
+    }
+
+    const childNodes = this.getMeaningfulImportNodes(element);
+    const childElements = childNodes.filter(node => node.nodeType === Node.ELEMENT_NODE);
+    if (childElements.length < 2) {
+      return false;
+    }
+
+    const semanticChildren = childElements.filter(child => /^(header|nav|main|section|article|footer|aside)$/i.test(child.tagName));
+    const siblingElements = siblingNodes.filter(node => node.nodeType === Node.ELEMENT_NODE);
+    const hasBackgroundSibling = siblingElements.some(node => node !== element && this.isBackgroundLikeElement(node));
+    const wrapperHint = `${element.id || ''} ${element.className || ''}`.toLowerCase();
+    const looksLikePageWrapper = /(app|page|layout|wrapper|root|shell|site|max-w|container)/.test(wrapperHint);
+
+    return semanticChildren.length >= 2 || (hasBackgroundSibling && (semanticChildren.length >= 1 || looksLikePageWrapper));
+  }
+
+  isBackgroundLikeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+      return false;
+    }
+
+    const tagName = element.tagName.toLowerCase();
+    const hint = `${element.id || ''} ${element.className || ''} ${element.getAttribute('data-us-project') || ''}`.toLowerCase();
+    const style = (element.getAttribute('style') || '').toLowerCase();
+
+    if (tagName === 'canvas') {
+      return true;
+    }
+
+    return /(background|backdrop|particle|unicorn|aura-background)/.test(hint)
+      || style.includes('mask-image')
+      || style.includes('-webkit-mask-image');
+  }
+
+  extractSectionNameFromComment(commentText) {
+    const cleanedText = commentText.trim();
+    const sectionMatch = cleanedText.match(/(?:Section|区域|模块|Block)\s*(?:\d+)?\s*[:：-]\s*(.+)/i);
+
+    if (sectionMatch?.[1]) {
+      return sectionMatch[1].trim();
+    }
+
+    const numberedMatch = cleanedText.match(/^\d+\s*[.、:-]\s*(.+)$/);
+    if (numberedMatch?.[1]) {
+      return this.formatSectionLabel(numberedMatch[1]);
+    }
+
+    const shotMatch = cleanedText.match(/^(?:shot|scene|step)\s*\d+\s*[:：-]\s*(.+)$/i);
+    if (shotMatch?.[1]) {
+      return this.formatSectionLabel(shotMatch[1]);
+    }
+
+    const backgroundMatch = cleanedText.match(/^(background)(?:\s*\((.+)\))?/i);
+    if (backgroundMatch) {
+      return backgroundMatch[2]
+        ? `Background / ${this.formatSectionLabel(backgroundMatch[2])}`
+        : 'Background';
+    }
+
+    if (/^(nav|header|hero|features|pricing|testimonials|faq|footer)$/i.test(cleanedText)) {
+      return this.formatSectionLabel(cleanedText);
+    }
+
+    return '';
+  }
+
+  getSectionNameFromElement(element, index) {
+    const tagName = element.tagName.toLowerCase();
+    const heading = element.querySelector('h1, h2, h3, h4, h5, h6');
+    const headingText = heading?.textContent?.trim();
+
+    if (tagName === 'header' || tagName === 'nav') {
+      return 'Header / Navigation';
+    }
+
+    if (tagName === 'footer') {
+      return 'Footer';
+    }
+
+    if (tagName === 'main') {
+      return 'Main Content';
+    }
+
+    if (tagName === 'aside') {
+      return 'Sidebar';
+    }
+
+    if (headingText) {
+      return headingText.length > 48 ? `${headingText.slice(0, 45)}...` : headingText;
+    }
+
+    const labelSource = element.getAttribute('data-section-name') || element.getAttribute('aria-label') || element.id || element.className;
+    if (labelSource) {
+      return this.formatSectionLabel(labelSource);
+    }
+
+    if (tagName === 'section' || tagName === 'article') {
+      return `Section ${index}`;
+    }
+
+    return `Block ${index}`;
+  }
+
+  formatSectionLabel(rawLabel) {
+    const normalized = String(rawLabel)
+      .split(/\s+/)
+      .find(Boolean) || String(rawLabel);
+
+    return normalized
+      .replace(/[-_]+/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, char => char.toUpperCase());
   }
 
   detectContainerWidth(doc) {
@@ -886,8 +1092,19 @@ class AuraCanvasEditor {
   }
 
   addSection(name = 'New Section', content = '', className = '') {
-    const section = {
-      id: Date.now(),
+    const section = this.createSectionData(name, content, className);
+    this.sections.push(section);
+    this.selectedSection = section;
+    this.renderSections();
+    this.renderPreview();
+    this.saveData();
+    this.showToast('Section added: ' + name, 'success');
+    return section;
+  }
+
+  createSectionData(name = 'New Section', content = '', className = '') {
+    return {
+      id: this.generateSectionId(),
       name,
       content,
       className,
@@ -897,13 +1114,10 @@ class AuraCanvasEditor {
       styleApplied: false,
       styleSetId: null
     };
-    this.sections.push(section);
-    this.selectedSection = section;
-    this.renderSections();
-    this.renderPreview();
-    this.saveData();
-    this.showToast('Section added: ' + name, 'success');
-    return section;
+  }
+
+  generateSectionId() {
+    return Date.now() * 1000 + Math.floor(Math.random() * 1000);
   }
 
   deleteSection(id) {
@@ -1244,6 +1458,8 @@ class AuraCanvasEditor {
 
     this.styleSets.push(styleSet);
     this.currentStyle = styleSet;
+    this.renderStyleCategoryOptions();
+    this.renderStyleSelect();
     this.renderStyleSets();
     this.renderPreview();
     this.saveData();
@@ -1286,6 +1502,8 @@ class AuraCanvasEditor {
 
         this.styleSets.push(styleSet);
         this.currentStyle = styleSet;
+        this.renderStyleCategoryOptions();
+        this.renderStyleSelect();
         this.renderStyleSets();
         this.renderPreview();
         this.saveData();
@@ -1437,6 +1655,8 @@ class AuraCanvasEditor {
       if (this.currentStyle && this.currentStyle.id === id) {
         this.currentStyle = null;
       }
+      this.renderStyleCategoryOptions();
+      this.renderStyleSelect();
       this.renderStyleSets();
       this.renderPreview();
       this.saveData();
@@ -2832,19 +3052,41 @@ class AuraCanvasEditor {
 
   async loadLocalStyles() {
     try {
-      // Try to load manifest file first
       let styleFiles = [];
       try {
-        const manifestResponse = await fetch('style/manifest.json');
-        if (manifestResponse.ok) {
-          styleFiles = await manifestResponse.json();
+        const stylesResponse = await fetch('/styles');
+        if (stylesResponse.ok) {
+          const data = await stylesResponse.json();
+          if (data?.ok && Array.isArray(data.files)) {
+            styleFiles = data.files
+              .filter(filename => this.isStyleJsonFile(filename))
+              .map(filename => ({
+                file: `style/${filename}`,
+                name: filename.replace('.json', '')
+              }));
+          }
         }
       } catch (e) {
-        console.log('Manifest file not found, using default list');
+        console.log('Auto-discovery endpoint not available, falling back to manifest');
+      }
+
+      if (styleFiles.length === 0) {
+        try {
+          const manifestResponse = await fetch('style/manifest.json');
+          if (manifestResponse.ok) {
+            styleFiles = (await manifestResponse.json())
+              .filter(styleInfo => this.isStyleJsonFile(styleInfo.file));
+          }
+        } catch (e) {
+          console.log('Manifest file not found, using minimal default list');
+        }
+      }
+
+      if (styleFiles.length === 0) {
         styleFiles = [
-          { name: 'Card Standard', file: 'style/card.json' },
           { name: 'Minimal Card', file: 'style/minimal-card.json' },
-          { name: 'Minimal Testimonial Card', file: 'style/testimonal.json' }
+          { name: 'Minimal Testimonial Card', file: 'style/testimonal.json' },
+          { name: 'Testimonial with Rating', file: 'style/testimonial-rating.json' }
         ];
       }
 
@@ -2873,7 +3115,7 @@ class AuraCanvasEditor {
             continue;
           }
 
-          styleSet.category = styleSet.category || styleInfo.category || 'general';
+          styleSet.category = this.normalizeStyleCategory(styleSet.category || styleInfo.category || 'general');
           styleSet.layout = {
             type: styleSet.layout?.type || 'card',
             width: styleSet.layout?.width || 'auto',
@@ -2912,6 +3154,7 @@ class AuraCanvasEditor {
       }
 
       console.log(`Total styles loaded: ${this.styleSets.length}`);
+      this.renderStyleCategoryOptions();
       this.renderStyleSelect();
     } catch (error) {
       console.error('Failed to load local styles:', error);
@@ -2919,17 +3162,100 @@ class AuraCanvasEditor {
     }
   }
 
+  isStyleJsonFile(filePath = '') {
+    const filename = String(filePath).split('/').pop().toLowerCase();
+    if (!filename.endsWith('.json')) {
+      return false;
+    }
+
+    const excludedFiles = new Set([
+      'manifest.json',
+      'style_set_template.json'
+    ]);
+
+    return !excludedFiles.has(filename);
+  }
+
+  normalizeStyleCategory(category = 'general') {
+    const normalized = String(category || 'general').trim().toLowerCase();
+    const aliasMap = {
+      hero: 'cta',
+      ctahero: 'cta',
+      'cta/hero': 'cta',
+      testimonials: 'testimonial',
+      reviews: 'testimonial',
+      review: 'testimonial',
+      products: 'product',
+      pricingtable: 'pricing'
+    };
+
+    return aliasMap[normalized] || normalized;
+  }
+
+  getPreferredStyleCategories() {
+    return [
+      { value: 'nav', label: 'Nav' },
+      { value: 'header', label: 'Header' },
+      { value: 'cta', label: 'CTA / Hero' },
+      { value: 'feature', label: 'Feature' },
+      { value: 'product', label: 'Product' },
+      { value: 'blog', label: 'Blog' },
+      { value: 'testimonial', label: 'Testimonials' },
+      { value: 'pricing', label: 'Pricing' },
+      { value: 'sidebar', label: 'Sidebar' },
+      { value: 'form', label: 'Form' },
+      { value: 'table', label: 'Table' },
+      { value: 'footer', label: 'Footer' },
+      { value: 'button', label: 'Button' }
+    ];
+  }
+
+  renderStyleCategoryOptions() {
+    const categoryFilter = document.getElementById('styleCategoryFilter');
+    if (!categoryFilter) return;
+
+    const previousValue = categoryFilter.value || 'all';
+    const categories = this.getPreferredStyleCategories();
+
+    categoryFilter.innerHTML = '';
+
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'All Styles';
+    categoryFilter.appendChild(allOption);
+
+    categories.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category.value;
+      option.textContent = category.label;
+      categoryFilter.appendChild(option);
+    });
+
+    categoryFilter.value = categories.some(item => item.value === previousValue) || previousValue === 'all'
+      ? previousValue
+      : 'all';
+  }
+
   renderStyleSelect() {
     const styleSelect = document.getElementById('styleSelect');
     if (!styleSelect) return;
 
-    const category = document.getElementById('styleCategoryFilter')?.value || 'all';
+    const category = this.normalizeStyleCategory(document.getElementById('styleCategoryFilter')?.value || 'all');
     const filteredStyles = category === 'all'
       ? this.styleSets
-      : this.styleSets.filter(styleSet => styleSet.category === category);
+      : this.styleSets.filter(styleSet => this.normalizeStyleCategory(styleSet.category || 'general') === category);
+
+    const sortedStyles = [...filteredStyles].sort((left, right) => {
+      const leftCategory = left.category || 'general';
+      const rightCategory = right.category || 'general';
+      if (leftCategory !== rightCategory) {
+        return leftCategory.localeCompare(rightCategory);
+      }
+      return (left.name || '').localeCompare(right.name || '');
+    });
 
     styleSelect.innerHTML = '<option value="">Choose a style...</option>';
-    filteredStyles.forEach(styleSet => {
+    sortedStyles.forEach(styleSet => {
       const option = document.createElement('option');
       option.value = styleSet.id;
       option.textContent = `${styleSet.name} · ${styleSet.category || 'general'}`;

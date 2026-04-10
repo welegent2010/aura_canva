@@ -1,15 +1,94 @@
 # 样式集使用指南
 
-## 目录结构
+## 设计目标
 
+Aura Canvas 的样式系统分成两层：
+
+1. **Category**：网页板块类别
+2. **Select Style**：该类别下的具体样式
+
+也就是说：
+
+- `Category = Product` 时，`Select Style` 里只出现商品相关样式
+- `Category = Nav` 时，`Select Style` 里只出现导航相关样式
+- 后续可以持续往某个类别下新增多个样式，而不用改编辑器逻辑
+
+当前编辑器内置的类别包括：
+
+- `nav`
+- `header`
+- `cta`
+- `feature`
+- `product`
+- `blog`
+- `testimonial`
+- `pricing`
+- `sidebar`
+- `form`
+- `table`
+- `footer`
+- `button`
+
+## 目录规则
+
+`style/` 目录里每个可用的 `.json` 文件都视为一个样式。
+
+会被忽略的文件：
+
+- `manifest.json`
+- `STYLE_SET_TEMPLATE.json`
+
+所以以后你新增样式时，通常只需要：
+
+1. 在 `style/` 下新增一个 JSON 文件
+2. 写好 `id`、`name`、`category`
+3. 刷新编辑器
+
+例如：
+
+```json
+{
+  "id": "product03-style",
+  "name": "Product 03",
+  "category": "product"
+}
 ```
-style/
-├── README.md                  # 本文件
-├── product-card.json          # 商品卡片样式（旧格式，向后兼容）
-├── blog-card.json             # 博客卡片样式（旧格式，向后兼容）
-├── modern-product-card.json   # 现代商品卡片（新格式，推荐）
-└── minimal-blog-card.json     # 极简博客卡片（新格式，推荐）
+
+这样它就会出现在：
+
+- `Category` 选择 `Product`
+- `Select Style` 列表中
+
+## 最小必填字段
+
+建议每个样式至少包含：
+
+```json
+{
+  "id": "product01-style",
+  "name": "Product 01",
+  "category": "product",
+  "description": "样式说明",
+  "version": "1.0.0",
+  "template": {
+    "html": "<div>{{name}}</div>",
+    "css": ".card { padding: 16px; }"
+  },
+  "fields": {
+    "name": {
+      "required": true,
+      "default": "Product Name"
+    }
+  }
+}
 ```
+
+其中最关键的是：
+
+- `id`：唯一标识
+- `name`：编辑器里显示的名称
+- `category`：决定它归到哪个板块类别下
+- `template.html` / `template.css`：实际渲染结构
 
 ## 样式集文件格式
 
